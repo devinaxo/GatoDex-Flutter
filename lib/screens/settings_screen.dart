@@ -29,7 +29,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Configuración'),
-          backgroundColor: Colors.orange,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -168,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
                 topRight: Radius.circular(4),
@@ -178,17 +177,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
                 if (isExpandable) ...[
                   const Spacer(),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.orange,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ],
               ],
@@ -220,8 +219,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: (iconColor ?? Colors.orange).withOpacity(0.1),
-        child: Icon(icon, color: iconColor ?? Colors.orange),
+        backgroundColor: (iconColor ?? Theme.of(context).colorScheme.primary).withOpacity(0.1),
+        child: Icon(icon, color: iconColor ?? Theme.of(context).colorScheme.primary),
       ),
       title: Text(
         title,
@@ -418,8 +417,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _addTestData();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: const Text('Agregar Datos'),
           ),
@@ -457,8 +456,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _clearAllCats();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             child: const Text('ELIMINAR TODO'),
           ),

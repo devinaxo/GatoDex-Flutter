@@ -104,7 +104,7 @@ class _AddCatScreenState extends State<AddCatScreen> {
         SnackBar(
           content: Text('¡Nombre generado: $randomName!'),
           duration: Duration(seconds: 2),
-          backgroundColor: Colors.orange,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (e) {
@@ -302,7 +302,8 @@ class _AddCatScreenState extends State<AddCatScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Agregar Gato'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
         ),
         body: Center(child: CircularProgressIndicator()),
       );
@@ -311,7 +312,8 @@ class _AddCatScreenState extends State<AddCatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Agregar Nuevo Gato'),
-        backgroundColor: Colors.orange,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveCat,
@@ -367,8 +369,8 @@ class _AddCatScreenState extends State<AddCatScreen> {
                     child: ElevatedButton(
                       onPressed: _isFetchingName ? null : _generateRandomName,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -496,8 +498,8 @@ class _AddCatScreenState extends State<AddCatScreen> {
               height: 200,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.shade200, width: 2),
-                color: Colors.orange.shade50,
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), width: 2),
+                color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
               ),
               child: _selectedImagePath != null
                   ? Stack(
@@ -568,13 +570,13 @@ class _AddCatScreenState extends State<AddCatScreen> {
           Icon(
             Icons.add_a_photo,
             size: 48,
-            color: Colors.orange.shade400,
+            color: Theme.of(context).colorScheme.primary,
           ),
           SizedBox(height: 8),
           Text(
             'Agregar Foto',
             style: TextStyle(
-              color: Colors.orange.shade600,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w500,
             ),
           ),

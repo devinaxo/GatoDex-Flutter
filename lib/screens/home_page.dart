@@ -71,7 +71,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('GatoDex'),
-        backgroundColor: Colors.orange,
         actions: [
           PopupMenuButton<String>(
             itemBuilder: (context) => [
@@ -148,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.orange.shade100,
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                           radius: 25,
                           child: cat.picturePath != null
                               ? ClipOval(
@@ -161,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                                           errorBuilder: (context, error, stackTrace) {
                                             return Icon(
                                               Icons.pets,
-                                              color: Colors.orange,
+                                              color: Theme.of(context).colorScheme.primary,
                                               size: 25,
                                             );
                                           },
@@ -174,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                                           errorBuilder: (context, error, stackTrace) {
                                             return Icon(
                                               Icons.pets,
-                                              color: Colors.orange,
+                                              color: Theme.of(context).colorScheme.primary,
                                               size: 25,
                                             );
                                           },
@@ -182,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                                 )
                               : Icon(
                                   Icons.pets,
-                                  color: Colors.orange,
+                                  color: Theme.of(context).colorScheme.primary,
                                   size: 25,
                                 ),
                         ),
@@ -243,7 +242,6 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           _navigateToAddCat();
         },
-        backgroundColor: Colors.orange,
         child: Icon(Icons.add),
       ),
     );
@@ -304,8 +302,8 @@ class _HomePageState extends State<HomePage> {
                 _navigateToAddCat();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
               child: Text('Agregar Gato Real'),
             ),
@@ -476,7 +474,7 @@ class _HomePageState extends State<HomePage> {
         maxChildSize: 0.95,
         builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -530,8 +528,8 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    color: Colors.orange.shade50,
-                                    border: Border.all(color: Colors.orange.shade200),
+                                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+                                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
                                   ),
                                   child: cat.picturePath != null
                                       ? ClipRRect(
@@ -586,7 +584,7 @@ class _HomePageState extends State<HomePage> {
                           cat.name,
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.orange.shade700,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
@@ -616,7 +614,7 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                   Icon(
                                     Icons.location_on,
-                                    color: Colors.orange.shade600,
+                                    color: Theme.of(context).colorScheme.primary,
                                     size: 24,
                                   ),
                                   SizedBox(width: 16),
@@ -685,8 +683,8 @@ class _HomePageState extends State<HomePage> {
                               icon: Icon(Icons.edit),
                               label: Text('Editar'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 padding: EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -729,12 +727,12 @@ class _HomePageState extends State<HomePage> {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.orange.shade100,
+        color: Theme.of(context).colorScheme.primaryContainer,
       ),
       child: Icon(
         Icons.pets,
         size: 80,
-        color: Colors.orange.shade600,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -751,7 +749,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           Icon(
             icon,
-            color: Colors.orange.shade600,
+            color: Theme.of(context).colorScheme.primary,
             size: 24,
           ),
           SizedBox(width: 16),

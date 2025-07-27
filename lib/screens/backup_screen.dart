@@ -275,7 +275,8 @@ class _BackupScreenState extends State<BackupScreen> {
       child: Scaffold(
       appBar: AppBar(
         title: Text('Copia de Seguridad'),
-        backgroundColor: Colors.orange,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -300,8 +301,8 @@ class _BackupScreenState extends State<BackupScreen> {
                               : Icon(Icons.backup),
                           label: Text(_isExporting ? 'Creando...' : 'Crear Copia de Seguridad'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
                             padding: EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
@@ -357,10 +358,10 @@ class _BackupScreenState extends State<BackupScreen> {
                               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.orange.shade100,
+                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                                   child: Icon(
                                     Icons.backup,
-                                    color: Colors.orange,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                                 title: Text(

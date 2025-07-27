@@ -48,6 +48,7 @@ dependencies:
   file_picker: ^8.1.2
   package_info_plus: ^8.0.2
   url_launcher: ^6.3.1
+  dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:

@@ -110,7 +110,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
   }) {
     return Card(
       child: ListTile(
-        leading: icon != null ? Icon(icon, color: Colors.orange) : null,
+        leading: icon != null ? Icon(icon, color: Theme.of(context).colorScheme.primary) : null,
         title: Text(title),
         subtitle: Text(value),
         onTap: onTap,
@@ -130,7 +130,8 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Gestión de Base de Datos'),
-        backgroundColor: Colors.orange,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -166,7 +167,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                         'Estado de la Base de Datos',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange.shade700,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       SizedBox(height: 16),
@@ -212,50 +213,6 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                       
                       SizedBox(height: 32),
                       
-                      // Information section
-                      Card(
-                        color: Colors.blue.shade50,
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.info, color: Colors.blue),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Persistencia de Datos',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                'La base de datos se almacena en el directorio de documentos de la aplicación, '
-                                'lo que significa que persistirá a través de las actualizaciones de la app. '
-                                'Los datos solo se perderán si desinstalas completamente la aplicación.',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                '• Las copias de seguridad regulares protegen tus datos\n'
-                                '• La versión de base de datos permite migraciones futuras\n'
-                                '• Los datos persisten durante actualizaciones de la app',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
                       SizedBox(height: 24),
                       
                       // Actions section
@@ -263,7 +220,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                         'Acciones de Mantenimiento',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange.shade700,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       SizedBox(height: 16),
