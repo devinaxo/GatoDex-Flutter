@@ -8,8 +8,8 @@ import '../utils/helpers.dart';
 import '../widgets/cat_location_map.dart';
 import '../widgets/fullscreen_image_viewer.dart';
 import 'edit_cat_screen.dart';
+import 'settings_screen.dart';
 import 'add_cat_screen.dart';
-import 'database_management_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -76,22 +76,12 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton<String>(
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'add_test_data',
+                value: 'settings',
                 child: Row(
                   children: [
-                    Icon(Icons.science, color: Colors.blue),
+                    Icon(Icons.settings, color: Colors.grey),
                     SizedBox(width: 8),
-                    Text('Agregar Datos de Prueba'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'clear_all',
-                child: Row(
-                  children: [
-                    Icon(Icons.clear_all, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Limpiar Todo', style: TextStyle(color: Colors.red)),
+                    Text('Configuración'),
                   ],
                 ),
               ),
@@ -105,43 +95,23 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              PopupMenuItem(
-                value: 'backup',
-                child: Row(
-                  children: [
-                    Icon(Icons.backup, color: Colors.purple),
-                    SizedBox(width: 8),
-                    Text('Copia de Seguridad'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'database',
-                child: Row(
-                  children: [
-                    Icon(Icons.storage, color: Colors.teal),
-                    SizedBox(width: 8),
-                    Text('Gestión de BD'),
-                  ],
-                ),
-              ),
             ],
-            onSelected: (value) {
+            onSelected: (value) async {
               switch (value) {
-                case 'add_test_data':
-                  _addTestCats();
-                  break;
-                case 'clear_all':
-                  _showClearAllDialog();
+                case 'settings':
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                  // Refresh data if settings screen indicates changes were made
+                  if (result == true) {
+                    _loadData();
+                  }
                   break;
                 case 'refresh':
                   _loadData();
-                  break;
-                case 'backup':
-                  _navigateToBackup();
-                  break;
-                case 'database':
-                  _navigateToDatabase();
                   break;
               }
             },
@@ -271,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddCatDialog();
+          _navigateToAddCat();
         },
         backgroundColor: Colors.orange,
         child: Icon(Icons.add),
@@ -467,56 +437,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showClearAllDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Limpiar Todos los Datos'),
-        content: Text('¿Estás seguro de que quieres eliminar TODOS los gatos? Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _clearAllCats();
-            },
-            child: Text('Eliminar Todo', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _clearAllCats() async {
-    try {
-      // Get all cats and delete them one by one
-      final allCats = await _catService.getAllCats();
-      for (Cat cat in allCats) {
-        await _catService.deleteCat(cat.id);
-      }
-
-      // Refresh the data
-      await _loadData();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Todos los gatos han sido eliminados'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error eliminando datos: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   Future<void> _navigateToEditCat(Cat cat) async {
     final result = await Navigator.push(
       context,
@@ -543,24 +463,6 @@ class _HomePageState extends State<HomePage> {
     if (result == true) {
       _loadData();
     }
-  }
-
-  Future<void> _navigateToBackup() async {
-    final result = await Navigator.pushNamed(context, '/backup');
-    
-    // If backup operations were performed, refresh the data
-    if (result == true) {
-      _loadData();
-    }
-  }
-
-  Future<void> _navigateToDatabase() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DatabaseManagementScreen(),
-      ),
-    );
   }
 
   void _showCatDetailsModal(Cat cat) {

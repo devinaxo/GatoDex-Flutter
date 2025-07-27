@@ -259,6 +259,15 @@ class DatabaseHelper {
     });
   }
 
+  Future<void> insertSpecies(Species species) async {
+    final db = await database;
+    await db.insert(
+      'species',
+      {'name': species.name},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
   // Operations for Fur Patterns
   Future<List<FurPattern>> getFurPatterns() async {
     final db = await database;
@@ -266,6 +275,15 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return FurPattern.fromMap(maps[i]);
     });
+  }
+
+  Future<void> insertFurPattern(FurPattern furPattern) async {
+    final db = await database;
+    await db.insert(
+      'fur_patterns',
+      {'name': furPattern.name},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   // Advanced query to get cats with details

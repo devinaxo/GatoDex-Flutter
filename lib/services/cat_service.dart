@@ -44,9 +44,17 @@ class CatService {
     return await _databaseHelper.getSpecies();
   }
 
+  Future<void> insertSpecies(Species species) async {
+    await _databaseHelper.insertSpecies(species);
+  }
+
   // Fur pattern operations
   Future<List<FurPattern>> getAllFurPatterns() async {
     return await _databaseHelper.getFurPatterns();
+  }
+
+  Future<void> insertFurPattern(FurPattern furPattern) async {
+    await _databaseHelper.insertFurPattern(furPattern);
   }
 
   // Utility methods
