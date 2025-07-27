@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/cat_service.dart';
 import '../models/cat.dart';
 import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../utils/helpers.dart';
+import '../widgets/cat_location_map.dart';
+import 'edit_cat_screen.dart';
+import 'add_cat_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -150,20 +154,33 @@ class _HomePageState extends State<HomePage> {
                           radius: 25,
                           child: cat.picturePath != null
                               ? ClipOval(
-                                  child: Image.asset(
-                                    cat.picturePath!,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      // If image fails to load, show cat icon
-                                      return Icon(
-                                        Icons.pets,
-                                        color: Colors.orange,
-                                        size: 25,
-                                      );
-                                    },
-                                  ),
+                                  child: cat.picturePath!.startsWith('assets/')
+                                      ? Image.asset(
+                                          cat.picturePath!,
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.pets,
+                                              color: Colors.orange,
+                                              size: 25,
+                                            );
+                                          },
+                                        )
+                                      : Image.file(
+                                          File(cat.picturePath!),
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.pets,
+                                              color: Colors.orange,
+                                              size: 25,
+                                            );
+                                          },
+                                        ),
                                 )
                               : Icon(
                                   Icons.pets,
@@ -214,7 +231,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                           onSelected: (value) {
                             if (value == 'edit') {
-                              // TODO: Navigate to edit page
+                              _navigateToEditCat(cat);
                             } else if (value == 'delete') {
                               _showDeleteDialog(cat);
                             }
@@ -226,7 +243,6 @@ class _HomePageState extends State<HomePage> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to add cat page
           _showAddCatDialog();
         },
         backgroundColor: Colors.orange,
@@ -287,10 +303,7 @@ class _HomePageState extends State<HomePage> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                // TODO: Navigate to add cat form
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Formulario de agregar gato - próximamente')),
-                );
+                _navigateToAddCat();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
@@ -476,6 +489,34 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _navigateToEditCat(Cat cat) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditCatScreen(cat: cat),
+      ),
+    );
+
+    // If the edit was successful, reload the data
+    if (result == true) {
+      _loadData();
+    }
+  }
+
+  Future<void> _navigateToAddCat() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCatScreen(),
+      ),
+    );
+
+    // If the add was successful, reload the data
+    if (result == true) {
+      _loadData();
+    }
+  }
+
   void _showCatDetailsModal(Cat cat) {
     showModalBottomSheet(
       context: context,
@@ -528,13 +569,21 @@ class _HomePageState extends State<HomePage> {
                           child: cat.picturePath != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    cat.picturePath!,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildDefaultCatImage();
-                                    },
-                                  ),
+                                  child: cat.picturePath!.startsWith('assets/')
+                                      ? Image.asset(
+                                          cat.picturePath!,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return _buildDefaultCatImage();
+                                          },
+                                        )
+                                      : Image.file(
+                                          File(cat.picturePath!),
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return _buildDefaultCatImage();
+                                          },
+                                        ),
                                 )
                               : _buildDefaultCatImage(),
                         ),
@@ -568,12 +617,56 @@ class _HomePageState extends State<HomePage> {
                         value: _getFurPatternName(cat.furPatternId),
                       ),
                       
-                      if (cat.hasLocation)
-                        _buildDetailRow(
-                          icon: Icons.location_on,
-                          label: 'Ubicación',
-                          value: cat.coordinatesString!,
+                      if (cat.hasLocation) ...[
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    color: Colors.orange.shade600,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Ubicación',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          cat.coordinatesString!,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              CatLocationMap(
+                                latitude: cat.latitude!,
+                                longitude: cat.longitude!,
+                                catName: cat.name,
+                                height: 250,
+                              ),
+                            ],
+                          ),
                         ),
+                      ],
                       
                       if (cat.dateMet != null)
                         _buildDetailRow(
@@ -598,10 +691,7 @@ class _HomePageState extends State<HomePage> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pop(context);
-                                // TODO: Navigate to edit page
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Editar gato - próximamente')),
-                                );
+                                _navigateToEditCat(cat);
                               },
                               icon: Icon(Icons.edit),
                               label: Text('Editar'),
