@@ -9,6 +9,7 @@ import '../widgets/cat_location_map.dart';
 import '../widgets/fullscreen_image_viewer.dart';
 import 'edit_cat_screen.dart';
 import 'add_cat_screen.dart';
+import 'database_management_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -114,6 +115,16 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              PopupMenuItem(
+                value: 'database',
+                child: Row(
+                  children: [
+                    Icon(Icons.storage, color: Colors.teal),
+                    SizedBox(width: 8),
+                    Text('Gestión de BD'),
+                  ],
+                ),
+              ),
             ],
             onSelected: (value) {
               switch (value) {
@@ -128,6 +139,9 @@ class _HomePageState extends State<HomePage> {
                   break;
                 case 'backup':
                   _navigateToBackup();
+                  break;
+                case 'database':
+                  _navigateToDatabase();
                   break;
               }
             },
@@ -538,6 +552,15 @@ class _HomePageState extends State<HomePage> {
     if (result == true) {
       _loadData();
     }
+  }
+
+  Future<void> _navigateToDatabase() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DatabaseManagementScreen(),
+      ),
+    );
   }
 
   void _showCatDetailsModal(Cat cat) {
