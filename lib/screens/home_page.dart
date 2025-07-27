@@ -6,6 +6,7 @@ import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../utils/helpers.dart';
 import '../widgets/cat_location_map.dart';
+import '../widgets/fullscreen_image_viewer.dart';
 import 'edit_cat_screen.dart';
 import 'add_cat_screen.dart';
 
@@ -578,36 +579,77 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       // Cat photo section
                       Center(
-                        child: Container(
-                          constraints: BoxConstraints(
-                            maxWidth: 450,
-                            maxHeight: 600,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.orange.shade50,
-                            border: Border.all(color: Colors.orange.shade200),
-                          ),
-                          child: cat.picturePath != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: cat.picturePath!.startsWith('assets/')
-                                      ? Image.asset(
-                                          cat.picturePath!,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return _buildDefaultCatImage();
-                                          },
+                        child: GestureDetector(
+                          onTap: () {
+                            if (cat.picturePath != null) {
+                              Navigator.of(context).push(
+                                PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, animation, secondaryAnimation) => 
+                                    FullscreenImageViewer(
+                                      imagePath: cat.picturePath,
+                                      heroTag: 'cat_image_${cat.id}',
+                                    ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Hero(
+                                tag: 'cat_image_${cat.id}',
+                                child: Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth: 450,
+                                    maxHeight: 600,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: Colors.orange.shade50,
+                                    border: Border.all(color: Colors.orange.shade200),
+                                  ),
+                                  child: cat.picturePath != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(20),
+                                          child: cat.picturePath!.startsWith('assets/')
+                                              ? Image.asset(
+                                                  cat.picturePath!,
+                                                  fit: BoxFit.contain,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return _buildDefaultCatImage();
+                                                  },
+                                                )
+                                              : Image.file(
+                                                  File(cat.picturePath!),
+                                                  fit: BoxFit.contain,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return _buildDefaultCatImage();
+                                                  },
+                                                ),
                                         )
-                                      : Image.file(
-                                          File(cat.picturePath!),
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return _buildDefaultCatImage();
-                                          },
-                                        ),
-                                )
-                              : _buildDefaultCatImage(),
+                                      : _buildDefaultCatImage(),
+                                ),
+                              ),
+                              // Tap indicator overlay (only show for images)
+                              if (cat.picturePath != null)
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Icon(
+                                      Icons.fullscreen,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                       
