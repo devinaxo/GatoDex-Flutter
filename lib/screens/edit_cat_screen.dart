@@ -8,6 +8,7 @@ import '../models/cat.dart';
 import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../services/cat_service.dart';
+import '../services/cat_name_api_service.dart';
 import '../widgets/location_picker_map.dart';
 
 class EditCatScreen extends StatefulWidget {
@@ -42,6 +43,7 @@ class _EditCatScreenState extends State<EditCatScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isFetchingName = false; // Track dice button loading state
 
   @override
   void initState() {
@@ -113,6 +115,40 @@ class _EditCatScreenState extends State<EditCatScreen> {
       _selectedDate = null;
       _dateController.clear();
     });
+  }
+
+  Future<void> _generateRandomName() async {
+    setState(() {
+      _isFetchingName = true;
+    });
+
+    try {
+      final randomName = await CatNameApiService.getRandomCatName();
+      setState(() {
+        _nameController.text = randomName;
+        _isFetchingName = false;
+      });
+      
+      // Show a subtle feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Nombre generado: $randomName!'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isFetchingName = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar un nombre. Verifica tu conexión.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _pickImage() async {
@@ -314,20 +350,54 @@ class _EditCatScreenState extends State<EditCatScreen> {
               _buildPhotoSection(),
               SizedBox(height: 24),
 
-              // Name field
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nombre del Gato',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.pets),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'El nombre es requerido';
-                  }
-                  return null;
-                },
+              // Name field with dice button
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre del Gato',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.pets),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'El nombre es requerido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Container(
+                    height: 56, // Match TextFormField height
+                    child: ElevatedButton(
+                      onPressed: _isFetchingName ? null : _generateRandomName,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      child: _isFetchingName
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Icon(
+                              Icons.casino,
+                              size: 24,
+                            ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 16),
 
