@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/home_page.dart';
+import 'screens/backup_screen.dart';
 import 'utils/constants.dart';
 
 void main() {
@@ -27,6 +28,9 @@ class MyApp extends StatelessWidget {
         Locale('es', ''), // Spanish
       ],
       home: HomePage(),
+      routes: {
+        '/backup': (context) => const BackupScreen(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }

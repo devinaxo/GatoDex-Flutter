@@ -103,6 +103,16 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              PopupMenuItem(
+                value: 'backup',
+                child: Row(
+                  children: [
+                    Icon(Icons.backup, color: Colors.purple),
+                    SizedBox(width: 8),
+                    Text('Copia de Seguridad'),
+                  ],
+                ),
+              ),
             ],
             onSelected: (value) {
               switch (value) {
@@ -114,6 +124,9 @@ class _HomePageState extends State<HomePage> {
                   break;
                 case 'refresh':
                   _loadData();
+                  break;
+                case 'backup':
+                  Navigator.pushNamed(context, '/backup');
                   break;
               }
             },

@@ -1,4 +1,4 @@
-package com.example.gatodex
+package com.devinaxo.gatodex
 
 import io.flutter.embedding.android.FlutterActivity
 
