@@ -30,9 +30,8 @@ class Cat {
     return null;
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+  Map<String, dynamic> toMap({bool includeId = true}) {
+    final map = <String, dynamic>{
       'name': name,
       'species_id': speciesId,
       'fur_pattern_id': furPatternId,
@@ -41,6 +40,13 @@ class Cat {
       'date_met': dateMet,
       'picture_path': picturePath,
     };
+    
+    // Only include ID if it's not 0 and includeId is true
+    if (includeId && id != 0) {
+      map['id'] = id;
+    }
+    
+    return map;
   }
 
   factory Cat.fromMap(Map<String, dynamic> map) {

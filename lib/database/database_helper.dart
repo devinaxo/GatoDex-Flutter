@@ -93,8 +93,8 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       'cats',
-      cat.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      cat.toMap(includeId: false), // Don't include ID, let SQLite auto-assign
+      conflictAlgorithm: ConflictAlgorithm.abort, // Don't replace, fail if conflict
     );
   }
 
@@ -124,7 +124,7 @@ class DatabaseHelper {
     final db = await database;
     await db.update(
       'cats',
-      cat.toMap(),
+      cat.toMap(includeId: true), // Include ID for updates
       where: 'id = ?',
       whereArgs: [cat.id],
     );

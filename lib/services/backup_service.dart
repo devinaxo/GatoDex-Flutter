@@ -21,7 +21,7 @@ class BackupService {
         'version': '1.0',
         'timestamp': DateTime.now().toIso8601String(),
         'data': {
-          'cats': cats.map((cat) => cat.toMap()).toList(),
+          'cats': cats.map((cat) => cat.toMap(includeId: true)).toList(), // Include IDs in export
           'species': species.map((s) => s.toMap()).toList(),
           'furPatterns': furPatterns.map((fp) => fp.toMap()).toList(),
         },
@@ -135,18 +135,14 @@ class BackupService {
       
       // Import cats
       final catsData = data['cats'] as List<dynamic>;
-      for (final catData in catsData) {
+      for (int i = 0; i < catsData.length; i++) {
         try {
+          final catData = catsData[i];
           final cat = Cat.fromMap(catData as Map<String, dynamic>);
           
           // Check if cat already exists (by name)
           final existingCats = await _catService.getAllCats();
           final catExists = existingCats.any((existing) => existing.name.toLowerCase() == cat.name.toLowerCase());
-          
-          if (catExists && !replaceExisting) {
-            skippedCats++;
-            continue;
-          }
           
           // Restore image if it exists in backup
           String? newImagePath;
@@ -159,9 +155,9 @@ class BackupService {
             }
           }
           
-          // Create new cat with restored image path
+          // Create new cat with restored image path (let database assign ID)
           final newCat = Cat(
-            id: 0, // Temporary ID, database will assign the correct one
+            id: 0, // Database will auto-assign
             name: cat.name,
             speciesId: cat.speciesId,
             furPatternId: cat.furPatternId,
@@ -175,7 +171,7 @@ class BackupService {
             // Update existing cat
             final existingCat = existingCats.firstWhere((existing) => existing.name.toLowerCase() == cat.name.toLowerCase());
             final updatedCat = Cat(
-              id: existingCat.id,
+              id: existingCat.id, // Keep the existing ID
               name: newCat.name,
               speciesId: newCat.speciesId,
               furPatternId: newCat.furPatternId,
@@ -185,18 +181,20 @@ class BackupService {
               picturePath: newCat.picturePath,
             );
             await _catService.updateCat(updatedCat);
-          } else {
-            // Add new cat
+          } else if (!catExists) {
+            // Add new cat (only if it doesn't exist)
             await _catService.addCat(newCat);
+          } else {
+            // Cat exists but we're not replacing, skip it
+            skippedCats++;
+            continue;
           }
-          
+
           importedCats++;
         } catch (e) {
           errors.add('Error importing cat: $e');
         }
-      }
-      
-      return ImportResult(
+      }      return ImportResult(
         success: true,
         importedCats: importedCats,
         skippedCats: skippedCats,

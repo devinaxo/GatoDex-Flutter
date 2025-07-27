@@ -14,6 +14,7 @@ class _BackupScreenState extends State<BackupScreen> {
   List<BackupInfo> _backups = [];
   bool _isLoading = true;
   bool _isExporting = false;
+  bool _needsRefresh = false; // Track if home page needs refresh
 
   @override
   void initState() {
@@ -59,6 +60,9 @@ class _BackupScreenState extends State<BackupScreen> {
 
       // Refresh the backup list
       _loadBackups();
+      
+      // Indicate that a refresh is needed when going back to home
+      _needsRefresh = true;
     } catch (e) {
       setState(() {
         _isExporting = false;
@@ -71,12 +75,23 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
-        dialogTitle: 'Seleccionar archivo de copia de seguridad',
+        allowedExtensions: ['json', 'JSON'],
+        allowMultiple: false,
+        dialogTitle: 'Seleccionar archivo de copia de seguridad (.json)',
+        withData: false,
+        withReadStream: false,
+        allowCompression: false,
       );
 
       if (result != null && result.files.single.path != null) {
         final filePath = result.files.single.path!;
+        
+        // Check if it's a JSON file
+        if (!filePath.toLowerCase().endsWith('.json')) {
+          _showError('Por favor selecciona un archivo .json de copia de seguridad');
+          return;
+        }
+        
         await _showImportDialog(filePath);
       }
     } catch (e) {
@@ -104,6 +119,9 @@ class _BackupScreenState extends State<BackupScreen> {
         }
 
         _showSuccessDialog('Importación Exitosa', message);
+        
+        // Indicate that a refresh is needed when going back to home
+        _needsRefresh = true;
       } else {
         _showError('Error en la importación: ${result.errors.join(', ')}');
       }
@@ -248,7 +266,13 @@ class _BackupScreenState extends State<BackupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        // Return the refresh flag when navigating back
+        Navigator.of(context).pop(_needsRefresh);
+        return false; // Prevent default pop
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text('Copia de Seguridad'),
         backgroundColor: Colors.orange,
@@ -395,6 +419,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 ),
               ],
             ),
-    );
+      ), // Close WillPopScope child (Scaffold)
+    ); // Close WillPopScope
   }
 }

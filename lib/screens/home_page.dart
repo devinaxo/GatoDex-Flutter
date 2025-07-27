@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                   _loadData();
                   break;
                 case 'backup':
-                  Navigator.pushNamed(context, '/backup');
+                  _navigateToBackup();
                   break;
               }
             },
@@ -525,6 +525,15 @@ class _HomePageState extends State<HomePage> {
     );
 
     // If the add was successful, reload the data
+    if (result == true) {
+      _loadData();
+    }
+  }
+
+  Future<void> _navigateToBackup() async {
+    final result = await Navigator.pushNamed(context, '/backup');
+    
+    // If backup operations were performed, refresh the data
     if (result == true) {
       _loadData();
     }
