@@ -47,12 +47,14 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   @override
   Widget build(BuildContext context) {
     final center = selectedLocation ?? LatLng(40.7128, -74.0060); // Default to NYC
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       height: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.shade200),
+        border: Border.all(color: colorScheme.outline),
       ),
       child: Column(
         children: [
@@ -60,7 +62,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -68,14 +70,14 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, size: 16, color: Colors.orange.shade700),
+                Icon(Icons.info_outline, size: 16, color: colorScheme.onSurfaceVariant),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Toca en el mapa para seleccionar ubicación',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.orange.shade700,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -87,6 +89,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(horizontal: 8),
                       minimumSize: Size(0, 32),
+                      foregroundColor: colorScheme.primary,
                     ),
                   ),
               ],
@@ -100,56 +103,72 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 bottomLeft: Radius.circular(12),
                 bottomRight: Radius.circular(12),
               ),
-              child: FlutterMap(
-                mapController: mapController,
-                options: MapOptions(
-                  initialCenter: center,
-                  initialZoom: selectedLocation != null ? 13.0 : 2.0,
-                  onTap: _onMapTap,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.pinchZoom | 
-                           InteractiveFlag.drag |
-                           InteractiveFlag.doubleTapZoom,
+              child: Container(
+                color: isDark ? Colors.black : Colors.white,
+                child: FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: center,
+                    initialZoom: selectedLocation != null ? 13.0 : 2.0,
+                    onTap: _onMapTap,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.pinchZoom | 
+                             InteractiveFlag.drag |
+                             InteractiveFlag.doubleTapZoom,
+                    ),
                   ),
-                ),
-                children: [
-                  // OpenStreetMap tile layer
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.gatodex',
-                    maxZoom: 19,
-                  ),
-                  // Marker layer
-                  if (selectedLocation != null)
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: selectedLocation!,
-                          width: 40,
-                          height: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
+                  children: [
+                    // Map tile layer with dark mode filter
+                    ColorFiltered(
+                      colorFilter: isDark
+                          ? ColorFilter.matrix([
+                              -1.0, 0.0, 0.0, 0.0, 255.0, // Invert red
+                              0.0, -1.0, 0.0, 0.0, 255.0, // Invert green  
+                              0.0, 0.0, -1.0, 0.0, 255.0, // Invert blue
+                              0.0, 0.0, 0.0, 1.0, 0.0,    // Keep alpha unchanged
+                            ])
+                          : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                      child: TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.gatodex',
+                        maxZoom: 19,
+                      ),
+                    ),
+                    // Marker layer
+                    if (selectedLocation != null)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: selectedLocation!,
+                            width: 40,
+                            height: 40,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: colorScheme.surface, 
+                                  width: 2
                                 ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.pets,
-                              color: Colors.white,
-                              size: 20,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.shadow.withValues(alpha: 0.3),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.pets,
+                                color: colorScheme.onPrimary,
+                                size: 20,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                ],
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
