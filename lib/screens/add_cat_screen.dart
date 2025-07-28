@@ -9,7 +9,7 @@ import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../services/cat_service.dart';
 import '../services/cat_name_api_service.dart';
-import '../widgets/location_picker_map.dart';
+import '../widgets/forms/location_picker_map.dart';
 
 class AddCatScreen extends StatefulWidget {
   const AddCatScreen({Key? key}) : super(key: key);
