@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   List<Species> _species = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
+  bool _isMosaicView = false; // Add view state
 
   @override
   void initState() {
@@ -49,9 +50,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error cargando datos: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error cargando datos: $e')));
     }
   }
 
@@ -66,12 +67,308 @@ class _HomePageState extends State<HomePage> {
     return pattern.isNotEmpty ? pattern.first.name : 'Patrón Desconocido';
   }
 
+  Widget _buildListView() {
+    return ListView.builder(
+      key: ValueKey('list_view'),
+      itemCount: _cats.length,
+      itemBuilder: (context, index) {
+        final cat = _cats[index];
+        return Card(
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              radius: 25,
+              child: cat.picturePath != null
+                  ? ClipOval(
+                      child: cat.picturePath!.startsWith('assets/')
+                          ? Image.asset(
+                              cat.picturePath!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.pets,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 25,
+                                );
+                              },
+                            )
+                          : Image.file(
+                              File(cat.picturePath!),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.pets,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 25,
+                                );
+                              },
+                            ),
+                    )
+                  : Icon(
+                      Icons.pets,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 25,
+                    ),
+            ),
+            title: Text(
+              cat.name,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Especie: ${_getSpeciesName(cat.speciesId)}'),
+                Text('Patrón: ${_getFurPatternName(cat.furPatternId)}'),
+              ],
+            ),
+            onTap: () {
+              _showCatDetailsModal(cat);
+            },
+            trailing: PopupMenuButton(
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit),
+                      SizedBox(width: 8),
+                      Text('Editar'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Eliminar', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _navigateToEditCat(cat);
+                } else if (value == 'delete') {
+                  _showDeleteDialog(cat);
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMosaicView() {
+    return GridView.builder(
+      key: ValueKey('mosaic_view'),
+      padding: EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: _cats.length,
+      itemBuilder: (context, index) {
+        final cat = _cats[index];
+        return AnimatedContainer(
+          duration: Duration(milliseconds: 300 + (index * 50)),
+          curve: Curves.easeOutBack,
+          child: GestureDetector(
+            onTap: () {
+              _showCatDetailsModal(cat);
+            },
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      child: cat.picturePath != null
+                          ? cat.picturePath!.startsWith('assets/')
+                                ? Image.asset(
+                                    cat.picturePath!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        child: Icon(
+                                          Icons.pets,
+                                          size: 60,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.file(
+                                    File(cat.picturePath!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        child: Icon(
+                                          Icons.pets,
+                                          size: 60,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
+                                      );
+                                    },
+                                  )
+                          : Container(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                              child: Icon(
+                                Icons.pets,
+                                size: 60,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            cat.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "Especie: ${_getSpeciesName(cat.speciesId)}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Patrón de pelaje: ${_getFurPatternName(cat.furPatternId)}",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              PopupMenuButton(
+                                icon: Icon(Icons.more_vert, size: 20),
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.edit, size: 16),
+                                        SizedBox(width: 8),
+                                        Text('Editar'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Eliminar',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _navigateToEditCat(cat);
+                                  } else if (value == 'delete') {
+                                    _showDeleteDialog(cat);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GatoDex'),
+        title: Text('gatoDex'),
         actions: [
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 350),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return RotationTransition(
+                turns: animation,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: IconButton(
+              key: ValueKey(_isMosaicView ? 'list_icon' : 'grid_icon'),
+              icon: Icon(_isMosaicView ? Icons.list : Icons.grid_view),
+              tooltip: _isMosaicView ? 'List View' : 'Mosaic View',
+              onPressed: () {
+                setState(() {
+                  _isMosaicView = !_isMosaicView;
+                });
+              },
+            ),
+          ),
           PopupMenuButton<String>(
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -120,124 +417,24 @@ class _HomePageState extends State<HomePage> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _cats.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.pets,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No hay gatos registrados',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      SizedBox(height: 8),
-                      Text('¡Agrega tu primer gato!'),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.pets, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No hay gatos registrados',
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                )
-              : ListView.builder(
-                  itemCount: _cats.length,
-                  itemBuilder: (context, index) {
-                    final cat = _cats[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          radius: 25,
-                          child: cat.picturePath != null
-                              ? ClipOval(
-                                  child: cat.picturePath!.startsWith('assets/')
-                                      ? Image.asset(
-                                          cat.picturePath!,
-                                          width: 50,
-                                          height: 50,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.pets,
-                                              color: Theme.of(context).colorScheme.primary,
-                                              size: 25,
-                                            );
-                                          },
-                                        )
-                                      : Image.file(
-                                          File(cat.picturePath!),
-                                          width: 50,
-                                          height: 50,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.pets,
-                                              color: Theme.of(context).colorScheme.primary,
-                                              size: 25,
-                                            );
-                                          },
-                                        ),
-                                )
-                              : Icon(
-                                  Icons.pets,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  size: 25,
-                                ),
-                        ),
-                        title: Text(
-                          cat.name,
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Especie: ${_getSpeciesName(cat.speciesId)}'),
-                            Text('Patrón: ${_getFurPatternName(cat.furPatternId)}'),
-                            if (cat.hasLocation)
-                              Text('Ubicación: ${cat.coordinatesString}'),
-                            if (cat.dateMet != null)
-                              Text('Encontrado: ${AppHelpers.formatDate(cat.dateMet)}'),
-                          ],
-                        ),
-                        onTap: () {
-                          _showCatDetailsModal(cat);
-                        },
-                        trailing: PopupMenuButton(
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit),
-                                  SizedBox(width: 8),
-                                  Text('Editar'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, color: Colors.red),
-                                  SizedBox(width: 8),
-                                  Text('Eliminar', style: TextStyle(color: Colors.red)),
-                                ],
-                              ),
-                            ),
-                          ],
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _navigateToEditCat(cat);
-                            } else if (value == 'delete') {
-                              _showDeleteDialog(cat);
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                  SizedBox(height: 8),
+                  Text('¡Agrega tu primer gato!'),
+                ],
+              ),
+            )
+          : _isMosaicView
+          ? _buildMosaicView()
+          : _buildListView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _navigateToAddCat();
@@ -263,56 +460,11 @@ class _HomePageState extends State<HomePage> {
               await _catService.deleteCat(cat.id);
               Navigator.pop(context);
               _loadData();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${cat.name} eliminado')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('${cat.name} eliminado')));
             },
             child: Text('Eliminar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddCatDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Agregar Gato'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('¿Qué quieres hacer?'),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _addTestCats();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Agregar Gatos de Prueba'),
-            ),
-            SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _navigateToAddCat();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              ),
-              child: Text('Agregar Gato Real'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
           ),
         ],
       ),
@@ -323,7 +475,7 @@ class _HomePageState extends State<HomePage> {
     try {
       // Get the starting ID and increment for each cat
       int baseId = await _catService.getNextCatId();
-      
+
       // Create test cats with different properties to showcase the UI
       final testCats = [
         Cat(
@@ -419,7 +571,9 @@ class _HomePageState extends State<HomePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${testCats.length} gatos de prueba agregados exitosamente'),
+          content: Text(
+            '${testCats.length} gatos de prueba agregados exitosamente',
+          ),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
@@ -438,9 +592,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _navigateToEditCat(Cat cat) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditCatScreen(cat: cat),
-      ),
+      MaterialPageRoute(builder: (context) => EditCatScreen(cat: cat)),
     );
 
     // If the edit was successful, reload the data
@@ -452,9 +604,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _navigateToAddCat() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddCatScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => AddCatScreen()),
     );
 
     // If the add was successful, reload the data
@@ -492,7 +642,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
+
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
@@ -508,11 +658,15 @@ class _HomePageState extends State<HomePage> {
                               Navigator.of(context).push(
                                 PageRouteBuilder(
                                   opaque: false,
-                                  pageBuilder: (context, animation, secondaryAnimation) => 
-                                    FullscreenImageViewer(
-                                      imagePath: cat.picturePath,
-                                      heroTag: 'cat_image_${cat.id}',
-                                    ),
+                                  pageBuilder:
+                                      (
+                                        context,
+                                        animation,
+                                        secondaryAnimation,
+                                      ) => FullscreenImageViewer(
+                                        imagePath: cat.picturePath,
+                                        heroTag: 'cat_image_${cat.id}',
+                                      ),
                                 ),
                               );
                             }
@@ -528,26 +682,48 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
-                                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withOpacity(0.1),
+                                    border: Border.all(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.3),
+                                    ),
                                   ),
                                   child: cat.picturePath != null
                                       ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(20),
-                                          child: cat.picturePath!.startsWith('assets/')
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          child:
+                                              cat.picturePath!.startsWith(
+                                                'assets/',
+                                              )
                                               ? Image.asset(
                                                   cat.picturePath!,
                                                   fit: BoxFit.contain,
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                    return _buildDefaultCatImage();
-                                                  },
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return _buildDefaultCatImage();
+                                                      },
                                                 )
                                               : Image.file(
                                                   File(cat.picturePath!),
                                                   fit: BoxFit.contain,
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                    return _buildDefaultCatImage();
-                                                  },
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return _buildDefaultCatImage();
+                                                      },
                                                 ),
                                         )
                                       : _buildDefaultCatImage(),
@@ -575,35 +751,36 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      
+
                       SizedBox(height: 24),
-                      
+
                       // Cat name
                       Center(
                         child: Text(
                           cat.name,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                         ),
                       ),
-                      
+
                       SizedBox(height: 24),
-                      
+
                       // Cat details
                       _buildDetailRow(
                         icon: Icons.pets,
                         label: 'Especie',
                         value: _getSpeciesName(cat.speciesId),
                       ),
-                      
+
                       _buildDetailRow(
                         icon: Icons.palette,
                         label: 'Patrón de Pelaje',
                         value: _getFurPatternName(cat.furPatternId),
                       ),
-                      
+
                       if (cat.hasLocation) ...[
                         Padding(
                           padding: EdgeInsets.only(bottom: 16),
@@ -614,13 +791,16 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                   Icon(
                                     Icons.location_on,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     size: 24,
                                   ),
                                   SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Ubicación',
@@ -654,23 +834,23 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                      
+
                       if (cat.dateMet != null)
                         _buildDetailRow(
                           icon: Icons.calendar_today,
                           label: 'Fecha de Encuentro',
                           value: AppHelpers.formatDate(cat.dateMet),
                         ),
-                      
+
                       if (cat.picturePath != null)
                         _buildDetailRow(
                           icon: Icons.photo,
                           label: 'Foto',
                           value: cat.picturePath!.split('/').last,
                         ),
-                      
+
                       SizedBox(height: 32),
-                      
+
                       // Action buttons
                       Row(
                         children: [
@@ -683,8 +863,12 @@ class _HomePageState extends State<HomePage> {
                               icon: Icon(Icons.edit),
                               label: Text('Editar'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
                                 padding: EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
@@ -697,7 +881,10 @@ class _HomePageState extends State<HomePage> {
                                 _showDeleteDialog(cat);
                               },
                               icon: Icon(Icons.delete, color: Colors.red),
-                              label: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                              label: Text(
+                                'Eliminar',
+                                style: TextStyle(color: Colors.red),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: Colors.red),
                                 padding: EdgeInsets.symmetric(vertical: 12),
@@ -747,11 +934,7 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: Theme.of(context).colorScheme.primary,
-            size: 24,
-          ),
+          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
           SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -768,10 +951,7 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 4),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
