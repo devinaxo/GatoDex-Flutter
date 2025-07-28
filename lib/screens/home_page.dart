@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/cat_service.dart';
 import '../models/cat.dart';
 import '../models/species.dart';
@@ -25,7 +26,20 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _loadViewPreference();
     _loadData();
+  }
+
+  Future<void> _loadViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isMosaicView = prefs.getBool('is_mosaic_view') ?? false;
+    });
+  }
+
+  Future<void> _saveViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_mosaic_view', _isMosaicView);
   }
 
   Future<void> _loadData() async {
@@ -76,6 +90,7 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   _isMosaicView = !_isMosaicView;
                 });
+                _saveViewPreference(); // Save the preference when changed
               },
             ),
           ),
