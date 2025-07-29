@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   
   // Pagination variables
   static const int _pageSize = 12;
-  int _currentPage = 1; // Start with page 1 (1-based indexing)
+  int _currentPage = 1; // changed to 1-based indexing for ui reasons
   int _totalPages = 0;
   bool _isLoadingMore = false;
   int _totalCats = 0;
@@ -52,11 +52,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _currentPage = 1; // Start with page 1 (1-based indexing)
+      _currentPage = 1; // changed to 1-based indexing for ui reasons
     });
 
     try {
-      // Load species and fur patterns (still load all)
       final species = await _catService.getAllSpecies();
       final furPatterns = await _catService.getAllFurPatterns();
       
@@ -143,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   _isMosaicView = !_isMosaicView;
                 });
-                _saveViewPreference(); // Save the preference when changed
+                _saveViewPreference();
               },
             ),
           ),

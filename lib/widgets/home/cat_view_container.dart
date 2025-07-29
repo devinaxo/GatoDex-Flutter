@@ -243,36 +243,8 @@ class _CatViewContainerState extends State<CatViewContainer>
             icon: const Icon(Icons.chevron_left),
           ),
           
-          // Page numbers
-          ...List.generate(widget.totalPages, (index) {
-            final page = index + 1; // Convert 0-based index to 1-based page
-            final isCurrentPage = page == widget.currentPage;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: InkWell(
-                onTap: () => _handlePageChange(page),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    border: isCurrentPage ? Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ) : null,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$page',
-                      style: TextStyle(
-                        fontWeight: isCurrentPage ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
+          // Smart pagination with ellipsis
+          ..._buildPaginationItems(context),
           
           // Next page button
           IconButton(
@@ -282,5 +254,162 @@ class _CatViewContainerState extends State<CatViewContainer>
         ],
       ),
     );
+  }
+
+  List<Widget> _buildPaginationItems(BuildContext context) {
+    List<Widget> items = [];
+    
+    // If there are 5 or fewer pages, show all pages
+    if (widget.totalPages <= 5) {
+      for (int i = 1; i <= widget.totalPages; i++) {
+        items.add(_buildPageButton(context, i));
+      }
+    } else {
+      // Show smart pagination with ellipsis
+      // Always show page 1
+      items.add(_buildPageButton(context, 1));
+      
+      // Determine what to show in the middle
+      if (widget.currentPage <= 3) {
+        // Current page is near the beginning: 1 2 3 [...] last
+        items.add(_buildPageButton(context, 2));
+        items.add(_buildPageButton(context, 3));
+        items.add(_buildEllipsisButton(context));
+        items.add(_buildPageButton(context, widget.totalPages));
+      } else if (widget.currentPage >= widget.totalPages - 2) {
+        // Current page is near the end: 1 [...] n-2 n-1 n
+        items.add(_buildEllipsisButton(context));
+        items.add(_buildPageButton(context, widget.totalPages - 2));
+        items.add(_buildPageButton(context, widget.totalPages - 1));
+        items.add(_buildPageButton(context, widget.totalPages));
+      } else {
+        // Current page is in the middle: 1 [...] current [...] last
+        items.add(_buildEllipsisButton(context));
+        items.add(_buildPageButton(context, widget.currentPage));
+        items.add(_buildEllipsisButton(context));
+        items.add(_buildPageButton(context, widget.totalPages));
+      }
+    }
+    
+    return items;
+  }
+
+  Widget _buildPageButton(BuildContext context, int page) {
+    final isCurrentPage = page == widget.currentPage;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: InkWell(
+        onTap: () => _handlePageChange(page),
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            border: isCurrentPage ? Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ) : null,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text(
+              '$page',
+              style: TextStyle(
+                fontWeight: isCurrentPage ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEllipsisButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: InkWell(
+        onTap: _showPageJumpDialog,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Center(
+            child: Text(
+              '...',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPageJumpDialog() {
+    final TextEditingController dialogController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ir a página'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Introduce un número de página (1-${widget.totalPages}):'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: dialogController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Número de página',
+                  border: const OutlineInputBorder(),
+                  hintText: 'Ej: ${widget.totalPages ~/ 2}',
+                ),
+                onSubmitted: (value) {
+                  _jumpToPageFromDialog(dialogController.text);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _jumpToPageFromDialog(dialogController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Ir'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _jumpToPageFromDialog(String pageText) {
+    if (pageText.isEmpty) return;
+    
+    final page = int.tryParse(pageText);
+    if (page == null || page < 1 || page > widget.totalPages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Por favor introduce un número válido entre 1 y ${widget.totalPages}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    HapticFeedback.lightImpact();
+    _handlePageChange(page);
   }
 }
