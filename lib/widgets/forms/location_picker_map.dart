@@ -130,7 +130,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                           : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                       child: TileLayer(
                         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.gatodex',
+                        userAgentPackageName: 'com.devinaxo.gatodex',
                         maxZoom: 19,
                       ),
                     ),
