@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'screens/home_page.dart';
+import 'screens/main_wrapper.dart';
 import 'screens/backup_screen.dart';
 import 'utils/constants.dart';
 
@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
             Locale('en', ''), // English
             Locale('es', ''), // Spanish
           ],
-          home: HomePage(),
+          home: MainWrapper(),
           routes: {
             '/backup': (context) => const BackupScreen(),
           },

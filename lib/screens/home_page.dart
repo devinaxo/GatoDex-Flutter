@@ -7,7 +7,6 @@ import '../models/fur_pattern.dart';
 import '../widgets/home/cat_view_container.dart';
 import '../widgets/home/cat_details_modal.dart';
 import 'edit_cat_screen.dart';
-import 'settings_screen.dart';
 import 'add_cat_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -112,98 +111,84 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('gatoDex'),
-            if (!_isLoading && _totalCats > 0)
-              Text(
-                '$_totalCats gatos • Página $_currentPage de $_totalPages',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-              ),
-          ],
-        ),
-        actions: [
-          AnimatedSwitcher(
-            duration: Duration(milliseconds: 350),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return RotationTransition(
-                turns: animation,
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
-            child: IconButton(
-              key: ValueKey(_isMosaicView ? 'list_icon' : 'grid_icon'),
-              icon: Icon(_isMosaicView ? Icons.list : Icons.grid_view),
-              tooltip: _isMosaicView ? 'List View' : 'Mosaic View',
-              onPressed: () {
-                setState(() {
-                  _isMosaicView = !_isMosaicView;
-                });
-                _saveViewPreference();
-              },
-            ),
-          ),
-          PopupMenuButton<String>(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings, color: Colors.grey),
-                    SizedBox(width: 8),
-                    Text('Configuración'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'refresh',
-                child: Row(
-                  children: [
-                    Icon(Icons.refresh),
-                    SizedBox(width: 8),
-                    Text('Actualizar'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) async {
-              switch (value) {
-                case 'settings':
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
-                  if (result == true) {
-                    _loadData();
-                  }
-                  break;
-                case 'refresh':
-                  _loadData();
-                  break;
-              }
-            },
-          ),
-        ],
-      ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : CatViewContainer(
-              cats: _cats,
-              species: _species,
-              furPatterns: _furPatterns,
-              isMosaicView: _isMosaicView,
-              currentPage: _currentPage,
-              totalPages: _totalPages,
-              isLoadingMore: _isLoadingMore,
-              onCatTap: _showCatDetailsModal,
-              onEditCat: _navigateToEditCat,
-              onDeleteCat: _showDeleteDialog,
-              onPageChanged: _loadPage,
+          : Column(
+              children: [
+                // Stats header
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!_isLoading && _totalCats > 0)
+                            Text(
+                              '$_totalCats gatos • Página $_currentPage de $_totalPages',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          AnimatedSwitcher(
+                            duration: Duration(milliseconds: 350),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              return RotationTransition(
+                                turns: animation,
+                                child: FadeTransition(opacity: animation, child: child),
+                              );
+                            },
+                            child: IconButton(
+                              key: ValueKey(_isMosaicView ? 'list_icon' : 'grid_icon'),
+                              icon: Icon(_isMosaicView ? Icons.list : Icons.grid_view),
+                              tooltip: _isMosaicView ? 'List View' : 'Mosaic View',
+                              onPressed: () {
+                                setState(() {
+                                  _isMosaicView = !_isMosaicView;
+                                });
+                                _saveViewPreference();
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.refresh),
+                            tooltip: 'Actualizar',
+                            onPressed: () {
+                              _loadData();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CatViewContainer(
+                    cats: _cats,
+                    species: _species,
+                    furPatterns: _furPatterns,
+                    isMosaicView: _isMosaicView,
+                    currentPage: _currentPage,
+                    totalPages: _totalPages,
+                    isLoadingMore: _isLoadingMore,
+                    onCatTap: _showCatDetailsModal,
+                    onEditCat: _navigateToEditCat,
+                    onDeleteCat: _showDeleteDialog,
+                    onPageChanged: _loadPage,
+                  ),
+                ),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

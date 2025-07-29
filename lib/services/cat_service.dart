@@ -43,6 +43,11 @@ class CatService {
     return await _databaseHelper.getCatsBySpecies(speciesId);
   }
 
+  Future<List<Cat>> getCatsWithLocation() async {
+    final allCats = await getAllCats();
+    return allCats.where((cat) => cat.hasLocation).toList();
+  }
+
   Future<List<Map<String, dynamic>>> getCatsWithDetails() async {
     return await _databaseHelper.getCatsWithDetails();
   }
