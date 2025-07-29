@@ -22,6 +22,13 @@ class _HomePageState extends State<HomePage> {
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
   bool _isMosaicView = false;
+  
+  // Pagination variables
+  static const int _pageSize = 12;
+  int _currentPage = 1; // Start with page 1 (1-based indexing)
+  int _totalPages = 0;
+  bool _isLoadingMore = false;
+  int _totalCats = 0;
 
   @override
   void initState() {
@@ -45,17 +52,24 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
+      _currentPage = 1; // Start with page 1 (1-based indexing)
     });
 
     try {
-      final cats = await _catService.getAllCats();
+      // Load species and fur patterns (still load all)
       final species = await _catService.getAllSpecies();
       final furPatterns = await _catService.getAllFurPatterns();
+      
+      // Load first page of cats and total count
+      final cats = await _catService.getCatsPaginated(offset: 0, limit: _pageSize);
+      final totalCats = await _catService.getCatsCount();
 
       setState(() {
         _cats = cats;
         _species = species;
         _furPatterns = furPatterns;
+        _totalCats = totalCats;
+        _totalPages = (totalCats / _pageSize).ceil();
         _isLoading = false;
       });
     } catch (e) {
@@ -68,11 +82,50 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadPage(int page) async {
+    if (_isLoadingMore || page < 1 || page > _totalPages) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final cats = await _catService.getCatsPaginated(
+        offset: (page - 1) * _pageSize, // Convert 1-based page to 0-based offset
+        limit: _pageSize
+      );
+
+      setState(() {
+        _cats = cats;
+        _currentPage = page;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error cargando página: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('gatoDex'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('gatoDex'),
+            if (!_isLoading && _totalCats > 0)
+              Text(
+                '$_totalCats gatos • Página $_currentPage de $_totalPages',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              ),
+          ],
+        ),
         actions: [
           AnimatedSwitcher(
             duration: Duration(milliseconds: 350),
@@ -145,9 +198,13 @@ class _HomePageState extends State<HomePage> {
               species: _species,
               furPatterns: _furPatterns,
               isMosaicView: _isMosaicView,
+              currentPage: _currentPage,
+              totalPages: _totalPages,
+              isLoadingMore: _isLoadingMore,
               onCatTap: _showCatDetailsModal,
               onEditCat: _navigateToEditCat,
               onDeleteCat: _showDeleteDialog,
+              onPageChanged: _loadPage,
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

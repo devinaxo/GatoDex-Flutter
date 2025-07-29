@@ -13,6 +13,10 @@ class CatViewContainer extends StatelessWidget {
   final Function(Cat) onCatTap;
   final Function(Cat) onEditCat;
   final Function(Cat) onDeleteCat;
+  final int currentPage;
+  final int totalPages;
+  final bool isLoadingMore;
+  final Function(int) onPageChanged;
 
   const CatViewContainer({
     Key? key,
@@ -23,6 +27,10 @@ class CatViewContainer extends StatelessWidget {
     required this.onCatTap,
     required this.onEditCat,
     required this.onDeleteCat,
+    required this.currentPage,
+    required this.totalPages,
+    required this.isLoadingMore,
+    required this.onPageChanged,
   }) : super(key: key);
 
   String _getSpeciesName(int speciesId) {
@@ -56,49 +64,119 @@ class CatViewContainer extends StatelessWidget {
       );
     }
 
-    return isMosaicView ? _buildMosaicView() : _buildListView();
+    return isMosaicView ? _buildMosaicView(context) : _buildListView(context);
   }
 
-  Widget _buildListView() {
-    return ListView.builder(
-      key: ValueKey('list_view'),
-      itemCount: cats.length,
-      itemBuilder: (context, index) {
-        final cat = cats[index];
-        return CatListItem(
-          cat: cat,
-          speciesName: _getSpeciesName(cat.speciesId),
-          furPatternName: _getFurPatternName(cat.furPatternId),
-          onTap: () => onCatTap(cat),
-          onEdit: () => onEditCat(cat),
-          onDelete: () => onDeleteCat(cat),
-        );
-      },
+  Widget _buildListView(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            key: ValueKey('list_view'),
+            itemCount: cats.length,
+            itemBuilder: (context, index) {
+              final cat = cats[index];
+              return CatListItem(
+                cat: cat,
+                speciesName: _getSpeciesName(cat.speciesId),
+                furPatternName: _getFurPatternName(cat.furPatternId),
+                onTap: () => onCatTap(cat),
+                onEdit: () => onEditCat(cat),
+                onDelete: () => onDeleteCat(cat),
+              );
+            },
+          ),
+        ),
+        if (totalPages > 1) _buildPaginationControls(context),
+      ],
     );
   }
 
-  Widget _buildMosaicView() {
-    return GridView.builder(
-      key: ValueKey('mosaic_view'),
-      padding: EdgeInsets.all(16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+  Widget _buildMosaicView(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: GridView.builder(
+            key: ValueKey('mosaic_view'),
+            padding: EdgeInsets.all(16),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: cats.length,
+            itemBuilder: (context, index) {
+              final cat = cats[index];
+              return CatMosaicItem(
+                cat: cat,
+                speciesName: _getSpeciesName(cat.speciesId),
+                furPatternName: _getFurPatternName(cat.furPatternId),
+                onTap: () => onCatTap(cat),
+                onEdit: () => onEditCat(cat),
+                onDelete: () => onDeleteCat(cat),
+              );
+            },
+          ),
+        ),
+        if (totalPages > 1) _buildPaginationControls(context),
+      ],
+    );
+  }
+
+  Widget _buildPaginationControls(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Previous page button
+          IconButton(
+            onPressed: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          
+          // Page numbers
+          ...List.generate(totalPages, (index) {
+            final page = index + 1; // Convert 0-based index to 1-based page
+            final isCurrentPage = page == currentPage;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: InkWell(
+                onTap: () => onPageChanged(page),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: isCurrentPage ? Theme.of(context).primaryColor : null,
+                    border: Border.all(
+                      color: isCurrentPage 
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).dividerColor,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$page',
+                      style: TextStyle(
+                        color: isCurrentPage ? Colors.white : null,
+                        fontWeight: isCurrentPage ? FontWeight.bold : null,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+          
+          // Next page button
+          IconButton(
+            onPressed: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
       ),
-      itemCount: cats.length,
-      itemBuilder: (context, index) {
-        final cat = cats[index];
-        return CatMosaicItem(
-          cat: cat,
-          speciesName: _getSpeciesName(cat.speciesId),
-          furPatternName: _getFurPatternName(cat.furPatternId),
-          onTap: () => onCatTap(cat),
-          onEdit: () => onEditCat(cat),
-          onDelete: () => onDeleteCat(cat),
-        );
-      },
     );
   }
 }

@@ -15,6 +15,14 @@ class CatService {
     return await _databaseHelper.getCats();
   }
 
+  Future<List<Cat>> getCatsPaginated({int offset = 0, int limit = 15}) async {
+    return await _databaseHelper.getCatsPaginated(offset: offset, limit: limit);
+  }
+
+  Future<int> getCatsCount() async {
+    return await _databaseHelper.getCatsCount();
+  }
+
   Future<Cat?> getCatById(int id) async {
     return await _databaseHelper.getCat(id);
   }

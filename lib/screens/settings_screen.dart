@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'backup_screen.dart';
 import 'database_management_screen.dart';
 import '../services/cat_service.dart';
+import '../services/cat_name_api_service.dart';
 import '../models/cat.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -400,10 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Agregar Datos de Prueba'),
         content: const Text(
           '¿Estás seguro de que quieres agregar gatos de prueba?\n\n'
-          'Esto agregará 3 gatos de ejemplo:\n'
-          '• Miau\n'
-          '• Luna\n'
-          '• Garfield\n\n'
+          'Esto agregará 3 gatos de ejemplo con nombres generados aleatoriamente.\n'
           'Los gatos existentes no se eliminarán.',
         ),
         actions: [
@@ -521,11 +519,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         throw Exception('No hay especies disponibles. Necesitas al menos una especie para crear gatos de prueba.');
       }
 
-      // Add test cats only
+      // Fetch 3 random cat names from the API
+      final catNames = await CatNameApiService.getMultipleCatNames(limit: 3);
+
+      // Add test cats with API-generated names
       final testCats = [
         Cat(
           id: 0, // Will be auto-generated
-          name: 'Miau',
+          name: catNames.isNotEmpty ? catNames[0] : 'Miau',
           speciesId: allSpecies.first.id,
           furPatternId: allPatterns.isNotEmpty ? allPatterns.first.id : null,
           dateMet: '2024-01-15',
@@ -533,14 +534,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         Cat(
           id: 0, // Will be auto-generated
-          name: 'Luna',
+          name: catNames.length > 1 ? catNames[1] : 'Luna',
           speciesId: allSpecies.length > 1 ? allSpecies[1].id : allSpecies.first.id,
           furPatternId: allPatterns.length > 1 ? allPatterns[1].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
           dateMet: '2024-02-20',
         ),
         Cat(
           id: 0, // Will be auto-generated
-          name: 'Garfield',
+          name: catNames.length > 2 ? catNames[2] : 'Garfield',
           speciesId: allSpecies.length > 2 ? allSpecies[2].id : allSpecies.first.id,
           furPatternId: allPatterns.length > 2 ? allPatterns[2].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
           dateMet: '2024-03-10',
@@ -557,8 +558,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _dataChanged = true; // Mark that data was modified
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡3 gatos de prueba agregados exitosamente!'),
+          SnackBar(
+            content: Text('¡3 gatos de prueba agregados exitosamente con nombres: ${catNames.join(", ")}!'),
             backgroundColor: Colors.green,
           ),
         );

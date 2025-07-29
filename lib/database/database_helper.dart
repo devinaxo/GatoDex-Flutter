@@ -217,6 +217,25 @@ class DatabaseHelper {
     });
   }
 
+  Future<List<Cat>> getCatsPaginated({int offset = 0, int limit = 15}) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cats',
+      orderBy: 'id DESC', // Show newest cats first
+      limit: limit,
+      offset: offset,
+    );
+    return List.generate(maps.length, (i) {
+      return Cat.fromMap(maps[i]);
+    });
+  }
+
+  Future<int> getCatsCount() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM cats');
+    return result.first['count'] as int;
+  }
+
   Future<Cat?> getCat(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
