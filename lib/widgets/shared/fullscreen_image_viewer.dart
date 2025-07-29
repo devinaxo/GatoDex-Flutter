@@ -168,13 +168,13 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
       width: 200,
       height: 200,
       decoration: BoxDecoration(
-        color: Colors.orange.shade100,
+        color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Icon(
         Icons.pets,
         size: 80,
-        color: Colors.orange.shade600,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }

@@ -24,11 +24,11 @@ class MyApp extends StatelessWidget {
         } else {
           // Fallback for older devices or when dynamic colors aren't available
           lightColorScheme = ColorScheme.fromSeed(
-            seedColor: Colors.orange,
+            seedColor: Theme.of(context).colorScheme.primary,
             brightness: Brightness.light,
           );
           darkColorScheme = ColorScheme.fromSeed(
-            seedColor: Colors.orange,
+            seedColor: Theme.of(context).colorScheme.primary,
             brightness: Brightness.dark,
           );
         }

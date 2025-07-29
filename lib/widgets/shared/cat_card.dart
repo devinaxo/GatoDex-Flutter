@@ -42,7 +42,7 @@ class CatCard extends StatelessWidget {
                 height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.orange.shade100,
+                  color: Theme.of(context).colorScheme.secondaryContainer,
                 ),
                 child: imagePath != null
                     ? ClipOval(

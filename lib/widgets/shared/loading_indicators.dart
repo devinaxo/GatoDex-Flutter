@@ -202,7 +202,7 @@ class _CatLoadingIndicatorState extends State<CatLoadingIndicator>
                 child: Icon(
                   Icons.pets,
                   size: widget.size,
-                  color: Colors.orange,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               );
             },
@@ -211,7 +211,6 @@ class _CatLoadingIndicatorState extends State<CatLoadingIndicator>
           const Text(
             'Cargando gatitos...',
             style: TextStyle(
-              color: Colors.orange,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -376,7 +376,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('No se puede abrir este tipo de enlace: $url'),
-              backgroundColor: Colors.orange,
+              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           );
         }

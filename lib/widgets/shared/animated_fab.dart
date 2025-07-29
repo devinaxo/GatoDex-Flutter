@@ -72,7 +72,7 @@ class _AnimatedFABState extends State<AnimatedFAB>
             child: FloatingActionButton(
               onPressed: _handleTap,
               tooltip: widget.tooltip,
-              backgroundColor: Colors.orange,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               child: Icon(widget.icon, color: Colors.white),
               elevation: 8,
             ),
@@ -134,7 +134,7 @@ class _PulsatingFABState extends State<PulsatingFAB>
           scale: _animation.value,
           child: FloatingActionButton(
             onPressed: widget.onPressed,
-            backgroundColor: Colors.orange,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             child: Icon(widget.icon, color: Colors.white),
             elevation: 8,
           ),
