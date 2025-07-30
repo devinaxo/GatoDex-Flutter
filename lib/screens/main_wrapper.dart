@@ -12,15 +12,19 @@ class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
 
-  final List<Widget> _pages = [
-    HomePage(),
-    GatoMapaScreen(),
-  ];
+  List<Widget> get _pages {
+    return [
+      HomePage(),
+      GatoMapaScreen(),
+      SettingsScreen(),
+    ];
+  }
 
-  final List<String> _pageTitles = [
-    'gatoDex',
-    'gatoMapa',
-  ];
+  List<String> get _pageTitles {
+    return _pages.length == 3 
+        ? ['gatoDex', 'gatoMapa', 'Configuración']
+        : ['gatoDex', 'gatoMapa'];
+  }
 
   @override
   void dispose() {
@@ -29,6 +33,10 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   void _onDrawerItemTapped(int index) {
+    if (index >= _pages.length) {
+      return;
+    }
+    
     setState(() {
       _selectedIndex = index;
     });
@@ -96,20 +104,29 @@ class _MainWrapperState extends State<MainWrapper> {
               onTap: () => _onDrawerItemTapped(1),
             ),
             Divider(),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Configuración'),
-              subtitle: Text('Ajustes de la app'),
-              onTap: () async {
-                Navigator.pop(context); // Close drawer first
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-            ),
+            if (_pages.length == 3)
+              ListTile(
+                leading: Icon(Icons.settings),
+                title: Text('Configuración'),
+                subtitle: Text('Ajustes de la app'),
+                selected: _selectedIndex == 2,
+                onTap: () => _onDrawerItemTapped(2),
+              ),
+            if (_pages.length < 3)
+              ListTile(
+                leading: Icon(Icons.settings),
+                title: Text('Configuración'),
+                subtitle: Text('Ajustes de la app'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
             Divider(),
             Padding(
               padding: EdgeInsets.all(16.0),

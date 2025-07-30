@@ -18,28 +18,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final CatService _catService = CatService();
   bool _isAdvancedExpanded = false;
   bool _isAddingTestData = false;
-  bool _dataChanged = false; // Track if data was modified
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pop(context, _dataChanged);
-        return false; // Prevent default pop behavior
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Configuración'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context, _dataChanged);
-            },
-          ),
-        ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
           // General Section
           _buildSectionCard(
             title: 'General',
@@ -148,9 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ] : [],
           ),
         ],
-      ),
-    ), // End of Scaffold
-    ); // End of WillPopScope
+      );
   }
 
   Widget _buildSectionCard({
@@ -342,24 +324,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _launchURL(String url) async {
-    print('Attempting to launch URL: $url'); // Debug output
     final Uri uri = Uri.parse(url);
     try {
       // First try to check if the URL can be launched
       bool canLaunch = await canLaunchUrl(uri);
-      print('Can launch URL: $canLaunch'); // Debug output
       
       if (canLaunch) {
         bool launched = await launchUrl(
           uri,
           mode: LaunchMode.externalApplication,
         );
-        print('Launch result: $launched'); // Debug output
         
         if (!launched) {
           // Try with platform default mode if external application fails
           launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-          print('Second launch attempt result: $launched'); // Debug output
         }
         
         if (!launched && mounted) {
@@ -371,7 +349,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       } else {
-        print('Cannot launch URL: $url'); // Debug output
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -382,7 +359,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       }
     } catch (e) {
-      print('Exception launching URL: $e'); // Debug output
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -478,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (mounted) {
         setState(() {
-          _dataChanged = true; // Mark that data was modified
+          // Cats deleted
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -555,7 +531,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (mounted) {
         setState(() {
-          _dataChanged = true; // Mark that data was modified
+          // Test cats added
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
