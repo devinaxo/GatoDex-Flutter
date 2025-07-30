@@ -7,7 +7,7 @@ import 'cat_list_item.dart';
 import 'cat_mosaic_item.dart';
 
 class CatViewContainer extends StatefulWidget {
-  final List<Cat> cats;
+  final Map<int, List<Cat>> preloadedPages; // Changed from single cats list to preloaded pages map
   final List<Species> species;
   final List<FurPattern> furPatterns;
   final bool isMosaicView;
@@ -18,10 +18,11 @@ class CatViewContainer extends StatefulWidget {
   final int totalPages;
   final bool isLoadingMore;
   final Function(int) onPageChanged;
+  final bool enableSmoothTransitions;
 
   const CatViewContainer({
     Key? key,
-    required this.cats,
+    required this.preloadedPages,
     required this.species,
     required this.furPatterns,
     required this.isMosaicView,
@@ -32,6 +33,7 @@ class CatViewContainer extends StatefulWidget {
     required this.totalPages,
     required this.isLoadingMore,
     required this.onPageChanged,
+    this.enableSmoothTransitions = true,
   }) : super(key: key);
 
   @override
@@ -40,74 +42,53 @@ class CatViewContainer extends StatefulWidget {
 
 class _CatViewContainerState extends State<CatViewContainer>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
+  late PageController _pageController;
+  bool _isPageChanging = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
+    _pageController = PageController(
+      initialPage: widget.currentPage - 1,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   @override
   void didUpdateWidget(CatViewContainer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentPage != widget.currentPage) {
-      _animatePageChange(oldWidget.currentPage, widget.currentPage);
+    if (oldWidget.currentPage != widget.currentPage && !_isPageChanging) {
+      _animateToPage(widget.currentPage - 1);
     }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  void _animatePageChange(int fromPage, int toPage) {
-    if (fromPage == toPage) return;
-    
-    // Determine slide direction
-    final slideDirection = toPage < fromPage ? -1.0 : 1.0;
-    
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(slideDirection, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _animationController.forward(from: 0);
+  void _animateToPage(int pageIndex) async {
+    if (_pageController.hasClients && !_isPageChanging) {
+      _isPageChanging = true;
+      try {
+        await _pageController.animateToPage(
+          pageIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+        );
+      } finally {
+        _isPageChanging = false;
+      }
+    }
   }
 
   void _triggerHapticFeedback() {
     HapticFeedback.lightImpact();
   }
 
-  void _triggerStrongHapticFeedback() {
-    HapticFeedback.mediumImpact();
-  }
-
   void _handlePageChange(int newPage) {
     if (newPage != widget.currentPage && newPage >= 1 && newPage <= widget.totalPages) {
       _triggerHapticFeedback();
-      widget.onPageChanged(newPage);
-    }
-  }
-
-  void _handleSwipePageChange(int newPage) {
-    if (newPage != widget.currentPage && newPage >= 1 && newPage <= widget.totalPages) {
-      _triggerStrongHapticFeedback(); // Stronger feedback for swipes
       widget.onPageChanged(newPage);
     }
   }
@@ -125,7 +106,9 @@ class _CatViewContainerState extends State<CatViewContainer>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.cats.isEmpty) {
+    final hasAnyCats = widget.preloadedPages.values.any((cats) => cats.isNotEmpty);
+    
+    if (!hasAnyCats) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -143,52 +126,31 @@ class _CatViewContainerState extends State<CatViewContainer>
       );
     }
 
-    return GestureDetector(
-      onPanEnd: (DragEndDetails details) {
-        // Only handle horizontal swipes if there are multiple pages
-        if (widget.totalPages <= 1) return;
-        
-        final velocity = details.velocity.pixelsPerSecond;
-        const double velocityThreshold = 200.0; // Lower threshold for easier swiping
-        
-        // Swipe right (previous page)
-        if (velocity.dx > velocityThreshold && widget.currentPage > 1) {
-          _handleSwipePageChange(widget.currentPage - 1);
-        }
-        // Swipe left (next page) 
-        else if (velocity.dx < -velocityThreshold && widget.currentPage < widget.totalPages) {
-          _handleSwipePageChange(widget.currentPage + 1);
-        }
-      },
-      onPanUpdate: (DragUpdateDetails details) {
-        // Optional: Could add visual feedback here during the drag
-        // For now, we'll keep it simple to avoid performance issues
-      },
-      child: widget.isMosaicView ? _buildMosaicView(context) : _buildListView(context),
-    );
-  }
-
-  Widget _buildListView(BuildContext context) {
     return Column(
       children: [
         Expanded(
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: ListView.builder(
-              key: ValueKey('list_view'),
-              itemCount: widget.cats.length,
-              itemBuilder: (context, index) {
-                final cat = widget.cats[index];
-                return CatListItem(
-                  cat: cat,
-                  speciesName: _getSpeciesName(cat.speciesId),
-                  furPatternName: _getFurPatternName(cat.furPatternId),
-                  onTap: () => widget.onCatTap(cat),
-                  onEdit: () => widget.onEditCat(cat),
-                  onDelete: () => widget.onDeleteCat(cat),
-                );
-              },
-            ),
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (pageIndex) {
+              final newPage = pageIndex + 1; // Convert back to 1-based indexing
+              if (newPage != widget.currentPage && !_isPageChanging) {
+                _triggerHapticFeedback();
+                widget.onPageChanged(newPage);
+              }
+            },
+            itemCount: widget.totalPages,
+            itemBuilder: (context, pageIndex) {
+              final pageNumber = pageIndex + 1; // Convert to 1-based indexing
+              final cats = widget.preloadedPages[pageNumber] ?? [];
+              
+              if (cats.isEmpty) {
+                return _buildLoadingPage(context, pageNumber);
+              }
+              
+              return widget.isMosaicView 
+                  ? _buildMosaicPageContent(context, cats)
+                  : _buildListPageContent(context, cats);
+            },
           ),
         ),
         if (widget.totalPages > 1) _buildPaginationControls(context),
@@ -196,38 +158,59 @@ class _CatViewContainerState extends State<CatViewContainer>
     );
   }
 
-  Widget _buildMosaicView(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: GridView.builder(
-              key: ValueKey('mosaic_view'),
-              padding: EdgeInsets.all(16),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.8,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: widget.cats.length,
-              itemBuilder: (context, index) {
-                final cat = widget.cats[index];
-                return CatMosaicItem(
-                  cat: cat,
-                  speciesName: _getSpeciesName(cat.speciesId),
-                  furPatternName: _getFurPatternName(cat.furPatternId),
-                  onTap: () => widget.onCatTap(cat),
-                  onEdit: () => widget.onEditCat(cat),
-                  onDelete: () => widget.onDeleteCat(cat),
-                );
-              },
-            ),
-          ),
-        ),
-        if (widget.totalPages > 1) _buildPaginationControls(context),
-      ],
+  Widget _buildLoadingPage(BuildContext context, int pageNumber) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Cargando página $pageNumber...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListPageContent(BuildContext context, List<Cat> cats) {
+    return ListView.builder(
+      key: ValueKey('list_page_${widget.currentPage}'),
+      itemCount: cats.length,
+      itemBuilder: (context, index) {
+        final cat = cats[index];
+        return CatListItem(
+          cat: cat,
+          speciesName: _getSpeciesName(cat.speciesId),
+          furPatternName: _getFurPatternName(cat.furPatternId),
+          onTap: () => widget.onCatTap(cat),
+          onEdit: () => widget.onEditCat(cat),
+          onDelete: () => widget.onDeleteCat(cat),
+        );
+      },
+    );
+  }
+
+  Widget _buildMosaicPageContent(BuildContext context, List<Cat> cats) {
+    return GridView.builder(
+      key: ValueKey('mosaic_page_${widget.currentPage}'),
+      padding: EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: cats.length,
+      itemBuilder: (context, index) {
+        final cat = cats[index];
+        return CatMosaicItem(
+          cat: cat,
+          speciesName: _getSpeciesName(cat.speciesId),
+          furPatternName: _getFurPatternName(cat.furPatternId),
+          onTap: () => widget.onCatTap(cat),
+          onEdit: () => widget.onEditCat(cat),
+          onDelete: () => widget.onDeleteCat(cat),
+        );
+      },
     );
   }
 
