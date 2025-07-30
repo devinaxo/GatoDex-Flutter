@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   List<Species> _species = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
+  bool _isRefreshing = false;
   bool _isMosaicView = false;
   
   // Pagination variables
@@ -77,6 +78,37 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error cargando datos: $e')));
+    }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      final species = await _catService.getAllSpecies();
+      final furPatterns = await _catService.getAllFurPatterns();
+      
+      final offset = (_currentPage - 1) * _pageSize;
+      final cats = await _catService.getCatsPaginated(offset: offset, limit: _pageSize);
+      final totalCats = await _catService.getCatsCount();
+
+      setState(() {
+        _cats = cats;
+        _species = species;
+        _furPatterns = furPatterns;
+        _totalCats = totalCats;
+        _totalPages = (totalCats / _pageSize).ceil();
+        _isRefreshing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isRefreshing = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error actualizando datos: $e')));
     }
   }
 
@@ -162,10 +194,21 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.refresh),
+                            icon: _isRefreshing 
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                  )
+                                : Icon(Icons.refresh),
                             tooltip: 'Actualizar',
-                            onPressed: () {
-                              _loadData();
+                            onPressed: _isRefreshing ? null : () {
+                              _refreshData();
                             },
                           ),
                         ],

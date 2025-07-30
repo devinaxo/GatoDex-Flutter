@@ -143,6 +143,7 @@ class _MainWrapperState extends State<MainWrapper> {
       ),
       body: PageView(
         controller: _pageController,
+        physics: NeverScrollableScrollPhysics(), // Disable swiping between main sections
         onPageChanged: (index) {
           setState(() {
             _selectedIndex = index;
