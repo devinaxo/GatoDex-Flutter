@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'home_page.dart';
 import 'gato_mapa_screen.dart';
 import 'settings_screen.dart';
@@ -11,6 +12,17 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
+  late PackageInfo packageInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    packageInfo = await PackageInfo.fromPlatform();
+  }
 
   List<Widget> get _pages {
     return [
@@ -131,7 +143,7 @@ class _MainWrapperState extends State<MainWrapper> {
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'Versión 0.5.1',
+                'Versión ${packageInfo.version}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
