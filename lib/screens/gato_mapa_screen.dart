@@ -220,8 +220,8 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
       floatingActionButton: _catsWithLocation.isNotEmpty
           ? FloatingActionButton(
               onPressed: _centerMapOnCats,
-              child: Icon(Icons.my_location),
-              tooltip: 'Centrar en gatos',
+              tooltip: 'Centrar ubicación de gatos',
+              child: Icon(Icons.center_focus_strong),
             )
           : null,
     );
