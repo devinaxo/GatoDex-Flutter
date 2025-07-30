@@ -36,6 +36,7 @@ class CatLocationMap extends StatelessWidget {
             options: MapOptions(
               initialCenter: location,
               initialZoom: 13.0,
+              backgroundColor: isDark ? Colors.black : Colors.white,
               interactionOptions: const InteractionOptions(
                 flags:
                     InteractiveFlag.pinchZoom |
@@ -48,10 +49,10 @@ class CatLocationMap extends StatelessWidget {
               ColorFiltered(
                 colorFilter: isDark
                     ? ColorFilter.matrix([
-                        -1.0, 0.0, 0.0, 0.0, 255.0, // Invert red
-                        0.0, -1.0, 0.0, 0.0, 255.0, // Invert green  
-                        0.0, 0.0, -1.0, 0.0, 255.0, // Invert blue
-                        0.0, 0.0, 0.0, 1.0, 0.0,    // Keep alpha unchanged
+                        -0.2126, -0.7152, -0.0722, 0, 255, // Red channel
+                        -0.2126, -0.7152, -0.0722, 0, 255, // Green channel
+                        -0.2126, -0.7152, -0.0722, 0, 255, // Blue channel
+                        0, 0, 0, 1, 0, // Alpha channel
                       ])
                     : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                 child: TileLayer(

@@ -130,8 +130,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Gestión de Base de Datos'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),

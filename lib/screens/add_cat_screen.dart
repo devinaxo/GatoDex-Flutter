@@ -312,8 +312,7 @@ class _AddCatScreenState extends State<AddCatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Agregar Nuevo Gato'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveCat,

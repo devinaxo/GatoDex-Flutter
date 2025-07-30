@@ -137,7 +137,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(16),
                           bottomRight: Radius.circular(16),
@@ -176,6 +176,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
                           options: MapOptions(
                             initialCenter: _center,
                             initialZoom: _zoom,
+                            backgroundColor: isDark ? Colors.black : Colors.white,
                             interactionOptions: const InteractionOptions(
                               flags: InteractiveFlag.pinchZoom |
                                   InteractiveFlag.drag |
@@ -186,11 +187,11 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
                             // Map tile layer with dark mode filter
                             ColorFiltered(
                               colorFilter: isDark
-                                  ? ColorFilter.matrix([
-                                      -1.0, 0.0, 0.0, 0.0, 255.0,
-                                      0.0, -1.0, 0.0, 0.0, 255.0,
-                                      0.0, 0.0, -1.0, 0.0, 255.0,
-                                      0.0, 0.0, 0.0, 1.0, 0.0,
+                                  ? ColorFilter.matrix(<double>[
+                                      -0.2126, -0.7152, -0.0722, 0, 255, // Red channel
+                                      -0.2126, -0.7152, -0.0722, 0, 255, // Green channel
+                                      -0.2126, -0.7152, -0.0722, 0, 255, // Blue channel
+                                      0, 0, 0, 1, 0, // Alpha channel
                                     ])
                                   : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                               child: TileLayer(

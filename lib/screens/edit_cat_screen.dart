@@ -310,8 +310,7 @@ class _EditCatScreenState extends State<EditCatScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text('Editar Gato'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         ),
         body: Center(child: CircularProgressIndicator()),
       );
@@ -320,8 +319,7 @@ class _EditCatScreenState extends State<EditCatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Editar ${widget.cat.name}'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveCat,
