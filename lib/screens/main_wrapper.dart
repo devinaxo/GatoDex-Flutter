@@ -33,9 +33,7 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   List<String> get _pageTitles {
-    return _pages.length == 3 
-        ? ['gatoDex', 'gatoMapa', 'Configuración']
-        : ['gatoDex', 'gatoMapa'];
+    return ['gatoDex', 'gatoMapa', 'Configuración'];
   }
 
   @override

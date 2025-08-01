@@ -8,6 +8,7 @@ import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../widgets/home/cat_details_modal.dart';
 import 'edit_cat_screen.dart';
+import 'add_cat_screen.dart';
 
 class GatoMapaScreen extends StatefulWidget {
   @override
@@ -24,8 +25,8 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
   final MapController _mapController = MapController();
   
   // Map settings
-  LatLng _center = LatLng(40.7128, -74.0060); // Default to NYC
-  double _zoom = 10.0;
+  LatLng _center = LatLng(0.0000, 0.0000);
+  final double _zoom = 10.0;
 
   @override
   void initState() {
@@ -86,7 +87,6 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -282,10 +282,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
           SizedBox(height: 24),
           FilledButton(
             onPressed: () {
-              // Navigate back to home page to add cats
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
+              _navigateToAddCat();
             },
             child: Text('Agregar Gatos'),
           ),
@@ -335,6 +332,17 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => EditCatScreen(cat: cat)),
+    );
+
+    if (result == true) {
+      _loadData();
+    }
+  }
+
+  Future<void> _navigateToAddCat() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddCatScreen()),
     );
 
     if (result == true) {
