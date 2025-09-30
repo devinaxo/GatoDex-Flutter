@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final double? initialLatitude;
@@ -21,6 +22,7 @@ class LocationPickerMap extends StatefulWidget {
 class _LocationPickerMapState extends State<LocationPickerMap> {
   LatLng? selectedLocation;
   final MapController mapController = MapController();
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
@@ -42,6 +44,81 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       selectedLocation = null;
     });
     widget.onLocationSelected(null, null);
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      // Check and request location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showLocationError('Permisos de ubicación denegados');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la configuración.');
+        return;
+      }
+
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationError('Los servicios de ubicación están deshabilitados. Por favor, habilítalos.');
+        return;
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Update location
+      LatLng currentLocation = LatLng(position.latitude, position.longitude);
+      setState(() {
+        selectedLocation = currentLocation;
+      });
+
+      // Move map to current location
+      mapController.move(currentLocation, 15.0);
+      
+      // Notify parent widget
+      widget.onLocationSelected(position.latitude, position.longitude);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ubicación actual establecida'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      _showLocationError('Error al obtener la ubicación: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+    }
+  }
+
+  void _showLocationError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override
@@ -79,6 +156,26 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                       fontSize: 12,
                       color: colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                ),
+                // Current location button
+                IconButton(
+                  onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                  icon: _isLoadingLocation
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        )
+                      : Icon(Icons.my_location, size: 18),
+                  tooltip: 'Usar mi ubicación actual',
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.all(8),
+                    minimumSize: Size(32, 32),
+                    foregroundColor: colorScheme.primary,
                   ),
                 ),
                 if (selectedLocation != null)
