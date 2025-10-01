@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final String? imagePath;
@@ -16,21 +17,17 @@ class FullscreenImageViewer extends StatefulWidget {
 }
 
 class _FullscreenImageViewerState extends State<FullscreenImageViewer>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
-  late TransformationController _transformationController;
+  late PhotoViewController _photoViewController;
   
-  double _dragDistance = 0.0;
-  bool _isDragging = false;
   bool _isZoomed = false;
 
   @override
   void initState() {
     super.initState();
-    _transformationController = TransformationController();
+    _photoViewController = PhotoViewController();
     
     _animationController = AnimationController(
       duration: Duration(milliseconds: 300),
@@ -43,94 +40,23 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
-    _scaleController = AnimationController(
-      duration: Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
 
     _animationController.forward();
     
-    // Listen to transformation changes to detect zoom level
-    _transformationController.addListener(_onTransformationChanged);
+    // Listen to scale changes to detect zoom level
+    _photoViewController.outputStateStream.listen((state) {
+      final scale = state.scale ?? 1.0;
+      setState(() {
+        _isZoomed = scale > 1.0;
+      });
+    });
   }
 
   @override
   void dispose() {
-    _transformationController.removeListener(_onTransformationChanged);
-    _transformationController.dispose();
+    _photoViewController.dispose();
     _animationController.dispose();
-    _scaleController.dispose();
     super.dispose();
-  }
-
-  void _onTransformationChanged() {
-    final scale = _transformationController.value.getMaxScaleOnAxis();
-    setState(() {
-      _isZoomed = scale > 1.0;
-    });
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    // Only allow drag to dismiss when not zoomed
-    if (!_isZoomed) {
-      setState(() {
-        _dragDistance += details.delta.dy;
-        _isDragging = true;
-      });
-
-      // Calculate scale based on drag distance
-      double scale = 1.0 - (_dragDistance.abs() / 500.0).clamp(0.0, 0.3);
-      _scaleAnimation = Tween<double>(
-        begin: scale,
-        end: scale,
-      ).animate(_scaleController);
-      _scaleController.forward();
-    }
-  }
-
-  void _handleDragEnd(DragEndDetails details) {
-    // Only process drag end when not zoomed
-    if (!_isZoomed) {
-      if (_dragDistance.abs() > 150) {
-        // Dismiss if dragged far enough
-        _dismissImage();
-      } else {
-        // Spring back to original position
-        setState(() {
-          _dragDistance = 0.0;
-          _isDragging = false;
-        });
-        _scaleAnimation = Tween<double>(
-          begin: _scaleAnimation.value,
-          end: 1.0,
-        ).animate(_scaleController);
-        _scaleController.reset();
-        _scaleController.forward();
-      }
-    }
-  }
-
-  void _handleDoubleTap() {
-    final scale = _transformationController.value.getMaxScaleOnAxis();
-    Matrix4 newTransform;
-    
-    if (scale <= 1.0) {
-      // Zoom in to 2x
-      newTransform = Matrix4.identity()..scale(2.0);
-    } else {
-      // Reset to original size
-      newTransform = Matrix4.identity();
-    }
-    
-    _transformationController.value = newTransform;
   }
 
   void _dismissImage() {
@@ -139,27 +65,15 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
     });
   }
 
-  Widget _buildImage() {
+  ImageProvider? _getImageProvider() {
     if (widget.imagePath == null) {
-      return _buildDefaultImage();
+      return null;
     }
 
     if (widget.imagePath!.startsWith('assets/')) {
-      return Image.asset(
-        widget.imagePath!,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildDefaultImage();
-        },
-      );
+      return AssetImage(widget.imagePath!);
     } else {
-      return Image.file(
-        File(widget.imagePath!),
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildDefaultImage();
-        },
-      );
+      return FileImage(File(widget.imagePath!));
     }
   }
 
@@ -181,6 +95,8 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
 
   @override
   Widget build(BuildContext context) {
+    final imageProvider = _getImageProvider();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AnimatedBuilder(
@@ -190,47 +106,46 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
             color: Colors.black.withOpacity(0.9 * _animation.value),
             child: Stack(
               children: [
-                // Dismiss on tap background
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: _dismissImage,
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-                
-                // Image with zoom and drag gesture
+                // PhotoView with Hero animation
                 Center(
-                  child: GestureDetector(
-                    onPanUpdate: _handleDragUpdate,
-                    onPanEnd: _handleDragEnd,
-                    onDoubleTap: _handleDoubleTap,
-                    child: AnimatedBuilder(
-                      animation: _scaleAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, _dragDistance),
-                          child: Transform.scale(
-                            scale: _scaleAnimation.value * _animation.value,
-                            child: Hero(
-                              tag: widget.heroTag,
-                              child: InteractiveViewer(
-                                transformationController: _transformationController,
-                                minScale: 1.0,
-                                maxScale: 4.0,
-                                child: Container(
-                                  constraints: BoxConstraints(
-                                    maxWidth: MediaQuery.of(context).size.width * 0.95,
-                                    maxHeight: MediaQuery.of(context).size.height * 0.85,
-                                  ),
-                                  child: _buildImage(),
-                                ),
-                              ),
+                  child: imageProvider != null
+                      ? Hero(
+                          tag: widget.heroTag,
+                          child: PhotoView(
+                            imageProvider: imageProvider,
+                            controller: _photoViewController,
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 4.0,
+                            initialScale: PhotoViewComputedScale.contained,
+                            backgroundDecoration: BoxDecoration(
+                              color: Colors.transparent,
                             ),
+                            enableRotation: false,
+                            loadingBuilder: (context, event) {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: event == null
+                                      ? 0
+                                      : event.cumulativeBytesLoaded /
+                                          (event.expectedTotalBytes ?? 1),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildDefaultImage();
+                            },
+                            onTapUp: (context, details, controllerValue) {
+                              // Only dismiss on tap if not zoomed
+                              if (!_isZoomed) {
+                                _dismissImage();
+                              }
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  ),
+                        )
+                      : Hero(
+                          tag: widget.heroTag,
+                          child: _buildDefaultImage(),
+                        ),
                 ),
                 
                 // Close button
@@ -255,37 +170,8 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
                   ),
                 ),
                 
-                // Drag indicator when dragging (only when not zoomed)
-                if (_isDragging && _dragDistance.abs() > 50 && !_isZoomed)
-                  Positioned(
-                    bottom: 100,
-                    left: 0,
-                    right: 0,
-                    child: FadeTransition(
-                      opacity: _animation,
-                      child: Center(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _dragDistance.abs() > 150 
-                                ? 'Suelta para cerrar' 
-                                : 'Arrastra para cerrar',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                
-                // Zoom instructions
-                if (!_isDragging && !_isZoomed)
+                // Zoom instructions when not zoomed
+                if (!_isZoomed)
                   Positioned(
                     bottom: 60,
                     left: 0,
@@ -300,7 +186,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Pellizca para zoom • Doble toque para acercar',
+                            'Pellizca para zoom • Doble toque para acercar • Toca para cerrar',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 12,

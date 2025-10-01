@@ -51,6 +51,7 @@ dependencies:
   url_launcher: ^6.3.1
   shared_preferences: ^2.3.2
   dynamic_color: ^1.7.0
+  photo_view: ^0.15.0
 
 dev_dependencies:
   flutter_test:
