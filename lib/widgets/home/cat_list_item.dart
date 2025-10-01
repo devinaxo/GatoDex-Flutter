@@ -25,6 +25,7 @@ class CatListItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           radius: 25,
@@ -67,17 +68,30 @@ class CatListItem extends StatelessWidget {
         title: Text(
           cat.name,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Especie: $speciesName'),
-            Text('Patrón: $furPatternName'),
+            Text(
+              'Especie: $speciesName',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              'Patrón: $furPatternName',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
         onTap: onTap,
-        trailing: PopupMenuButton(
-          itemBuilder: (context) => [
+        trailing: SizedBox(
+          width: 40,
+          child: PopupMenuButton(
+            padding: EdgeInsets.zero,
+            itemBuilder: (context) => [
             PopupMenuItem(
               value: 'edit',
               child: Row(
@@ -106,6 +120,7 @@ class CatListItem extends StatelessWidget {
               onDelete();
             }
           },
+          ),
         ),
       ),
     );
