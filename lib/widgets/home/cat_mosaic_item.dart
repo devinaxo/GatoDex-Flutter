@@ -63,22 +63,74 @@ class CatMosaicItem extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        cat.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      // Name and menu button row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              cat.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: PopupMenuButton(
+                              padding: EdgeInsets.zero,
+                              icon: Icon(Icons.more_vert, size: 18),
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Editar'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Eliminar',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  onEdit();
+                                } else if (value == 'delete') {
+                                  onDelete();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 4),
                       Text(
-                        "Especie: $speciesName",
+                        speciesName,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -88,58 +140,13 @@ class CatMosaicItem extends StatelessWidget {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        "Patrón de pelaje: $furPatternName",
+                        furPatternName,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey[500],
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          PopupMenuButton(
-                            icon: Icon(Icons.more_vert, size: 20),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit, size: 16),
-                                    SizedBox(width: 8),
-                                    Text('Editar'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Eliminar',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                onEdit();
-                              } else if (value == 'delete') {
-                                onDelete();
-                              }
-                            },
-                          ),
-                        ],
                       ),
                     ],
                   ),
