@@ -106,46 +106,49 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
             color: Colors.black.withOpacity(0.9 * _animation.value),
             child: Stack(
               children: [
-                // PhotoView with Hero animation
+                // PhotoView with fade animation
                 Center(
-                  child: imageProvider != null
-                      ? Hero(
-                          tag: widget.heroTag,
-                          child: PhotoView(
-                            imageProvider: imageProvider,
-                            controller: _photoViewController,
-                            minScale: PhotoViewComputedScale.contained,
-                            maxScale: PhotoViewComputedScale.covered * 4.0,
-                            initialScale: PhotoViewComputedScale.contained,
-                            backgroundDecoration: BoxDecoration(
-                              color: Colors.transparent,
+                  child: FadeTransition(
+                    opacity: _animation,
+                    child: imageProvider != null
+                        ? Hero(
+                            tag: widget.heroTag,
+                            child: PhotoView(
+                              imageProvider: imageProvider,
+                              controller: _photoViewController,
+                              minScale: PhotoViewComputedScale.contained,
+                              maxScale: PhotoViewComputedScale.covered * 4.0,
+                              initialScale: PhotoViewComputedScale.contained,
+                              backgroundDecoration: BoxDecoration(
+                                color: Colors.transparent,
+                              ),
+                              enableRotation: false,
+                              loadingBuilder: (context, event) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: event == null
+                                        ? 0
+                                        : event.cumulativeBytesLoaded /
+                                            (event.expectedTotalBytes ?? 1),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildDefaultImage();
+                              },
+                              onTapUp: (context, details, controllerValue) {
+                                // Only dismiss on tap if not zoomed
+                                if (!_isZoomed) {
+                                  _dismissImage();
+                                }
+                              },
                             ),
-                            enableRotation: false,
-                            loadingBuilder: (context, event) {
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: event == null
-                                      ? 0
-                                      : event.cumulativeBytesLoaded /
-                                          (event.expectedTotalBytes ?? 1),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildDefaultImage();
-                            },
-                            onTapUp: (context, details, controllerValue) {
-                              // Only dismiss on tap if not zoomed
-                              if (!_isZoomed) {
-                                _dismissImage();
-                              }
-                            },
+                          )
+                        : Hero(
+                            tag: widget.heroTag,
+                            child: _buildDefaultImage(),
                           ),
-                        )
-                      : Hero(
-                          tag: widget.heroTag,
-                          child: _buildDefaultImage(),
-                        ),
+                  ),
                 ),
                 
                 // Close button
@@ -186,7 +189,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Pellizca para zoom • Doble toque para acercar • Toca para cerrar',
+                            'Doble toque o pellizque para acercar • Toca fuera para cerrar',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 12,
