@@ -3,116 +3,119 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/backup_screen.dart';
+import 'services/theme_service.dart';
 import 'utils/constants.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeService().init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  static const _seedColor = Colors.orange;
+
+  ThemeData _buildTheme(ColorScheme scheme) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        ColorScheme lightColorScheme;
-        ColorScheme darkColorScheme;
+    final themeService = ThemeService();
 
-        if (lightDynamic != null && darkDynamic != null) {
-          // On Android S+ devices, use the provided dynamic color scheme
-          lightColorScheme = lightDynamic.harmonized();
-          darkColorScheme = darkDynamic.harmonized();
-        } else {
-          // Fallback for older devices or when dynamic colors aren't available
-          lightColorScheme = ColorScheme.fromSeed(
-            seedColor: Theme.of(context).colorScheme.primary,
-            brightness: Brightness.light,
-          );
-          darkColorScheme = ColorScheme.fromSeed(
-            seedColor: Theme.of(context).colorScheme.primary,
-            brightness: Brightness.dark,
+    return ListenableBuilder(
+      listenable: themeService,
+      builder: (context, _) {
+        if (themeService.useDynamicColor) {
+          return DynamicColorBuilder(
+            builder: (lightDynamic, darkDynamic) {
+              final lightScheme = lightDynamic?.harmonized() ??
+                  ColorScheme.fromSeed(seedColor: _seedColor);
+              final darkScheme = darkDynamic?.harmonized() ??
+                  ColorScheme.fromSeed(
+                    seedColor: _seedColor,
+                    brightness: Brightness.dark,
+                  );
+
+              return _buildMaterialApp(
+                theme: _buildTheme(lightScheme),
+                darkTheme: _buildTheme(darkScheme),
+                themeMode: themeService.themeMode,
+              );
+            },
           );
         }
 
-        return MaterialApp(
-          title: AppConstants.appName,
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: lightColorScheme,
-            appBarTheme: AppBarTheme(
-              backgroundColor: lightColorScheme.primaryContainer,
-              foregroundColor: lightColorScheme.onPrimaryContainer,
-              elevation: 0,
-              centerTitle: true,
-            ),
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            floatingActionButtonTheme: FloatingActionButtonThemeData(
-              backgroundColor: lightColorScheme.primaryContainer,
-              foregroundColor: lightColorScheme.onPrimaryContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: darkColorScheme,
-            appBarTheme: AppBarTheme(
-              backgroundColor: darkColorScheme.primaryContainer,
-              foregroundColor: darkColorScheme.onPrimaryContainer,
-              elevation: 0,
-              centerTitle: true,
-            ),
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            floatingActionButtonTheme: FloatingActionButtonThemeData(
-              backgroundColor: darkColorScheme.primaryContainer,
-              foregroundColor: darkColorScheme.onPrimaryContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          themeMode: ThemeMode.system, // Follows system theme (light/dark)
-          // Add localizations support
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', ''), // English
-            Locale('es', ''), // Spanish
-          ],
-          home: MainWrapper(),
-          routes: {
-            '/backup': (context) => const BackupScreen(),
-          },
-          debugShowCheckedModeBanner: false,
+        final lightScheme = ColorScheme.fromSeed(seedColor: _seedColor);
+        final darkScheme = ColorScheme.fromSeed(
+          seedColor: _seedColor,
+          brightness: Brightness.dark,
+        );
+
+        return _buildMaterialApp(
+          theme: _buildTheme(lightScheme),
+          darkTheme: _buildTheme(darkScheme),
+          themeMode: themeService.themeMode,
         );
       },
+    );
+  }
+
+  MaterialApp _buildMaterialApp({
+    required ThemeData theme,
+    required ThemeData darkTheme,
+    required ThemeMode themeMode,
+  }) {
+    return MaterialApp(
+      title: AppConstants.appName,
+      theme: theme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('es', ''),
+      ],
+      home: const MainWrapper(),
+      routes: {
+        '/backup': (context) => const BackupScreen(),
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }

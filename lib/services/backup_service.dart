@@ -7,157 +7,120 @@ import 'cat_service.dart';
 
 class BackupService {
   final CatService _catService = CatService();
-  
-  /// Exports all cat data and images to a backup file
+
+  Future<Directory> _getBackupDirectory() async {
+    Directory? directory;
+
+    try {
+      if (Platform.isWindows) {
+        final userProfile = Platform.environment['USERPROFILE'];
+        if (userProfile != null) {
+          directory = Directory(path.join(userProfile, 'Documents'));
+        }
+      } else if (Platform.isAndroid) {
+        try {
+          directory = Directory('/storage/emulated/0/Download');
+          if (!await directory.exists()) {
+            directory = Directory('/storage/emulated/0/Documents');
+            if (!await directory.exists()) {
+              await directory.create(recursive: true);
+            }
+          }
+        } catch (_) {
+          directory = await getExternalStorageDirectory();
+        }
+      }
+
+      if (directory != null && !await directory.exists()) {
+        directory = null;
+      }
+    } catch (_) {
+      directory = null;
+    }
+
+    directory ??= await getApplicationDocumentsDirectory();
+    final backupDir = Directory(path.join(directory.path, 'GatoDex-Backups'));
+
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+
+    return backupDir;
+  }
+
   Future<String> exportDatabase() async {
     try {
-      // Get all cats, species, and fur patterns
       final cats = await _catService.getAllCats();
       final species = await _catService.getAllSpecies();
       final furPatterns = await _catService.getAllFurPatterns();
-      
-      // Create backup data structure
+
       final backupData = {
         'version': '1.0',
         'timestamp': DateTime.now().toIso8601String(),
         'data': {
-          'cats': cats.map((cat) => cat.toMap(includeId: true)).toList(), // Include IDs in export
+          'cats': cats.map((cat) => cat.toMap(includeId: true)).toList(),
           'species': species.map((s) => s.toMap()).toList(),
           'furPatterns': furPatterns.map((fp) => fp.toMap()).toList(),
         },
-        'images': <String, String>{}, // Will store base64 encoded images
+        'images': <String, String>{},
       };
-      
-      // Include images as base64 strings
-      final Map<String, String> imageMap = backupData['images'] as Map<String, String>;
+
+      final imageMap = backupData['images'] as Map<String, String>;
       for (final cat in cats) {
         if (cat.picturePath != null && !cat.picturePath!.startsWith('assets/')) {
           try {
             final imageFile = File(cat.picturePath!);
             if (await imageFile.exists()) {
-              final imageBytes = await imageFile.readAsBytes();
-              final base64Image = base64Encode(imageBytes);
-              imageMap[cat.picturePath!] = base64Image;
+              imageMap[cat.picturePath!] = base64Encode(await imageFile.readAsBytes());
             }
-          } catch (e) {
-            print('Error encoding image ${cat.picturePath}: $e');
-          }
+          } catch (_) {}
         }
       }
-      
-      // Get a more user-friendly directory
-      Directory? directory;
-      try {
-        // Try to get a better directory location
-        if (Platform.isWindows) {
-          final userProfile = Platform.environment['USERPROFILE'];
-          if (userProfile != null) {
-            directory = Directory(path.join(userProfile, 'Documents'));
-          }
-        } else if (Platform.isAndroid) {
-          // Try to get Downloads directory first (more accessible for users)
-          try {
-            directory = Directory('/storage/emulated/0/Download');
-            if (!await directory.exists()) {
-              // Fallback to Documents
-              directory = Directory('/storage/emulated/0/Documents');
-              if (!await directory.exists()) {
-                // Create Documents folder if it doesn't exist
-                await directory.create(recursive: true);
-              }
-            }
-          } catch (e) {
-            // If external storage fails, use app-specific external storage
-            directory = await getExternalStorageDirectory();
-          }
-        }
-        
-        // Check if the directory exists and is writable
-        if (directory != null && !await directory.exists()) {
-          directory = null;
-        }
-      } catch (e) {
-        print('Error accessing preferred directory: $e');
-        directory = null;
-      }
-      
-      // Fallback to application documents directory
-      directory ??= await getApplicationDocumentsDirectory();
-      final backupDir = Directory(path.join(directory.path, 'GatoDex-Backups'));
-      
-      if (!await backupDir.exists()) {
-        await backupDir.create(recursive: true);
-      }
-      
-      // Create backup file with timestamp
+
+      final backupDir = await _getBackupDirectory();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').replaceAll('.', '-');
-      final backupFileName = 'gatodex_backup_$timestamp.json';
-      final backupFile = File(path.join(backupDir.path, backupFileName));
-      
-      // Write backup data to file
+      final backupFile = File(path.join(backupDir.path, 'gatodex_backup_$timestamp.json'));
+
       await backupFile.writeAsString(jsonEncode(backupData), flush: true);
-      
       return backupFile.path;
     } catch (e) {
       throw Exception('Error creating backup: $e');
     }
   }
-  
-  /// Imports cat data from a backup file
+
   Future<ImportResult> importDatabase(String backupFilePath, {bool replaceExisting = false}) async {
     try {
       final backupFile = File(backupFilePath);
-      
-      if (!await backupFile.exists()) {
-        throw Exception('Backup file not found');
-      }
-      
-      // Read and parse backup file
-      final backupContent = await backupFile.readAsString();
-      final backupData = jsonDecode(backupContent) as Map<String, dynamic>;
-      
-      // Validate backup format
-      if (!_validateBackupFormat(backupData)) {
-        throw Exception('Invalid backup file format');
-      }
-      
+      if (!await backupFile.exists()) throw Exception('Backup file not found');
+
+      final backupData = jsonDecode(await backupFile.readAsString()) as Map<String, dynamic>;
+      if (!_validateBackupFormat(backupData)) throw Exception('Invalid backup file format');
+
       final data = backupData['data'] as Map<String, dynamic>;
       final images = backupData['images'] as Map<String, dynamic>? ?? {};
-      
-      // Clear existing data if requested
-      if (replaceExisting) {
-        await _clearAllData();
-      }
-      
+
+      if (replaceExisting) await _clearAllData();
+
       int importedCats = 0;
       int skippedCats = 0;
       final errors = <String>[];
-      
-      // Import cats
+
       final catsData = data['cats'] as List<dynamic>;
       for (int i = 0; i < catsData.length; i++) {
         try {
-          final catData = catsData[i];
-          final cat = Cat.fromMap(catData as Map<String, dynamic>);
-          
-          // Check if cat already exists (by name)
+          final cat = Cat.fromMap(catsData[i] as Map<String, dynamic>);
           final existingCats = await _catService.getAllCats();
-          final catExists = existingCats.any((existing) => existing.name.toLowerCase() == cat.name.toLowerCase());
-          
-          // Restore image if it exists in backup
+          final catExists = existingCats.any((e) => e.name.toLowerCase() == cat.name.toLowerCase());
+
           String? newImagePath;
           if (cat.picturePath != null && images.containsKey(cat.picturePath)) {
             try {
               newImagePath = await _restoreImage(cat.picturePath!, images[cat.picturePath]!);
-            } catch (e) {
-              print('Error restoring image for ${cat.name}: $e');
-              // Continue without image
-            }
+            } catch (_) {}
           }
-          
-          // Create new cat with restored image path (let database assign ID)
+
           final newCat = Cat(
-            id: 0, // Database will auto-assign
+            id: 0,
             name: cat.name,
             speciesId: cat.speciesId,
             furPatternId: cat.furPatternId,
@@ -166,12 +129,11 @@ class BackupService {
             dateMet: cat.dateMet,
             picturePath: newImagePath ?? cat.picturePath,
           );
-          
+
           if (catExists && replaceExisting) {
-            // Update existing cat
-            final existingCat = existingCats.firstWhere((existing) => existing.name.toLowerCase() == cat.name.toLowerCase());
-            final updatedCat = Cat(
-              id: existingCat.id, // Keep the existing ID
+            final existingCat = existingCats.firstWhere((e) => e.name.toLowerCase() == cat.name.toLowerCase());
+            await _catService.updateCat(Cat(
+              id: existingCat.id,
               name: newCat.name,
               speciesId: newCat.speciesId,
               furPatternId: newCat.furPatternId,
@@ -179,167 +141,88 @@ class BackupService {
               longitude: newCat.longitude,
               dateMet: newCat.dateMet,
               picturePath: newCat.picturePath,
-            );
-            await _catService.updateCat(updatedCat);
+            ));
           } else if (!catExists) {
-            // Add new cat (only if it doesn't exist)
             await _catService.addCat(newCat);
           } else {
-            // Cat exists but we're not replacing, skip it
             skippedCats++;
             continue;
           }
-
           importedCats++;
         } catch (e) {
           errors.add('Error importing cat: $e');
         }
-      }      return ImportResult(
-        success: true,
-        importedCats: importedCats,
-        skippedCats: skippedCats,
-        errors: errors,
-      );
+      }
+
+      return ImportResult(success: true, importedCats: importedCats, skippedCats: skippedCats, errors: errors);
     } catch (e) {
-      return ImportResult(
-        success: false,
-        importedCats: 0,
-        skippedCats: 0,
-        errors: ['Failed to import backup: $e'],
-      );
+      return ImportResult(success: false, importedCats: 0, skippedCats: 0, errors: ['Failed to import backup: $e']);
     }
   }
-  
-  /// Lists available backup files
+
   Future<List<BackupInfo>> getAvailableBackups() async {
     try {
-      // Use the same directory logic as export
-      Directory? directory;
-      try {
-        if (Platform.isWindows) {
-          final userProfile = Platform.environment['USERPROFILE'];
-          if (userProfile != null) {
-            directory = Directory(path.join(userProfile, 'Documents'));
-          }
-        } else if (Platform.isAndroid) {
-          // Try to get Downloads directory first (more accessible for users)
-          try {
-            directory = Directory('/storage/emulated/0/Download');
-            if (!await directory.exists()) {
-              // Fallback to Documents
-              directory = Directory('/storage/emulated/0/Documents');
-              if (!await directory.exists()) {
-                // Create Documents folder if it doesn't exist
-                await directory.create(recursive: true);
-              }
-            }
-          } catch (e) {
-            // If external storage fails, use app-specific external storage
-            directory = await getExternalStorageDirectory();
-          }
-        }
-        
-        if (directory != null && !await directory.exists()) {
-          directory = null;
-        }
-      } catch (e) {
-        print('Error accessing preferred directory: $e');
-        directory = null;
-      }
-      
-      directory ??= await getApplicationDocumentsDirectory();
-      final backupDir = Directory(path.join(directory.path, 'GatoDex-Backups'));
-      
-      if (!await backupDir.exists()) {
-        return [];
-      }
-      
+      final backupDir = await _getBackupDirectory();
+      if (!await backupDir.exists()) return [];
+
       final backupFiles = await backupDir.list()
           .where((entity) => entity is File && entity.path.endsWith('.json'))
           .cast<File>()
           .toList();
-      
+
       final backups = <BackupInfo>[];
-      
       for (final file in backupFiles) {
         try {
           final stat = await file.stat();
-          final content = await file.readAsString();
-          final data = jsonDecode(content) as Map<String, dynamic>;
-          
-          final catsCount = (data['data']?['cats'] as List?)?.length ?? 0;
-          final timestamp = data['timestamp'] as String?;
-          
+          final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
           backups.add(BackupInfo(
             filePath: file.path,
             fileName: path.basename(file.path),
             fileSize: stat.size,
-            createdAt: timestamp != null ? DateTime.tryParse(timestamp) : null,
-            catsCount: catsCount,
+            createdAt: data['timestamp'] != null ? DateTime.tryParse(data['timestamp']) : null,
+            catsCount: (data['data']?['cats'] as List?)?.length ?? 0,
           ));
-        } catch (e) {
-          print('Error reading backup file ${file.path}: $e');
-        }
+        } catch (_) {}
       }
-      
-      // Sort by creation date (newest first)
+
       backups.sort((a, b) {
         if (a.createdAt == null && b.createdAt == null) return 0;
         if (a.createdAt == null) return 1;
         if (b.createdAt == null) return -1;
         return b.createdAt!.compareTo(a.createdAt!);
       });
-      
+
       return backups;
     } catch (e) {
       throw Exception('Error listing backups: $e');
     }
   }
-  
-  /// Deletes a backup file
+
   Future<void> deleteBackup(String backupFilePath) async {
-    try {
-      final file = File(backupFilePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      throw Exception('Error deleting backup: $e');
-    }
+    final file = File(backupFilePath);
+    if (await file.exists()) await file.delete();
   }
-  
-  // Private helper methods
-  
-  bool _validateBackupFormat(Map<String, dynamic> backupData) {
-    return backupData.containsKey('version') &&
-        backupData.containsKey('data') &&
-        backupData['data'] is Map &&
-        (backupData['data'] as Map).containsKey('cats');
-  }
-  
+
+  bool _validateBackupFormat(Map<String, dynamic> backupData) =>
+      backupData.containsKey('version') && backupData.containsKey('data') && backupData['data'] is Map && (backupData['data'] as Map).containsKey('cats');
+
   Future<void> _clearAllData() async {
     final cats = await _catService.getAllCats();
     for (final cat in cats) {
       await _catService.deleteCat(cat.id);
     }
   }
-  
+
   Future<String> _restoreImage(String originalPath, String base64Image) async {
-    try {
-      final imageBytes = base64Decode(base64Image);
-      
-      // Get app directory for storing images
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = 'cat_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final newPath = path.join(appDir.path, fileName);
-      
-      final newFile = File(newPath);
-      await newFile.writeAsBytes(imageBytes);
-      
-      return newPath;
-    } catch (e) {
-      throw Exception('Error restoring image: $e');
-    }
+    final imageBytes = base64Decode(base64Image);
+    final appDir = await getApplicationDocumentsDirectory();
+    final imgDir = Directory(path.join(appDir.path, 'images'));
+    if (!await imgDir.exists()) await imgDir.create(recursive: true);
+
+    final fileName = 'cat_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final newFile = File(path.join(imgDir.path, fileName));
+    await newFile.writeAsBytes(imageBytes);
+    return newFile.path;
   }
 }
 
@@ -348,13 +231,8 @@ class ImportResult {
   final int importedCats;
   final int skippedCats;
   final List<String> errors;
-  
-  ImportResult({
-    required this.success,
-    required this.importedCats,
-    required this.skippedCats,
-    required this.errors,
-  });
+
+  ImportResult({required this.success, required this.importedCats, required this.skippedCats, required this.errors});
 }
 
 class BackupInfo {
@@ -363,34 +241,21 @@ class BackupInfo {
   final int fileSize;
   final DateTime? createdAt;
   final int catsCount;
-  
-  BackupInfo({
-    required this.filePath,
-    required this.fileName,
-    required this.fileSize,
-    required this.createdAt,
-    required this.catsCount,
-  });
-  
+
+  BackupInfo({required this.filePath, required this.fileName, required this.fileSize, required this.createdAt, required this.catsCount});
+
   String get formattedSize {
     if (fileSize < 1024) return '$fileSize B';
     if (fileSize < 1024 * 1024) return '${(fileSize / 1024).toStringAsFixed(1)} KB';
     return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
-  
+
   String get formattedDate {
     if (createdAt == null) return 'Fecha desconocida';
-    final now = DateTime.now();
-    final difference = now.difference(createdAt!);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} día${difference.inDays == 1 ? '' : 's'} atrás';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hora${difference.inHours == 1 ? '' : 's'} atrás';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minuto${difference.inMinutes == 1 ? '' : 's'} atrás';
-    } else {
-      return 'Ahora';
-    }
+    final difference = DateTime.now().difference(createdAt!);
+    if (difference.inDays > 0) return '${difference.inDays} día${difference.inDays == 1 ? '' : 's'} atrás';
+    if (difference.inHours > 0) return '${difference.inHours} hora${difference.inHours == 1 ? '' : 's'} atrás';
+    if (difference.inMinutes > 0) return '${difference.inMinutes} minuto${difference.inMinutes == 1 ? '' : 's'} atrás';
+    return 'Ahora';
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/backup_service.dart';
 
 class BackupScreen extends StatefulWidget {
-  const BackupScreen({Key? key}) : super(key: key);
+  final String? initialImportPath;
+
+  const BackupScreen({Key? key, this.initialImportPath}) : super(key: key);
 
   @override
   _BackupScreenState createState() => _BackupScreenState();
@@ -14,12 +17,17 @@ class _BackupScreenState extends State<BackupScreen> {
   List<BackupInfo> _backups = [];
   bool _isLoading = true;
   bool _isExporting = false;
-  bool _needsRefresh = false; // Track if home page needs refresh
+  bool _needsRefresh = false;
 
   @override
   void initState() {
     super.initState();
     _loadBackups();
+    if (widget.initialImportPath != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showImportDialog(widget.initialImportPath!);
+      });
+    }
   }
 
   Future<void> _loadBackups() async {
@@ -222,6 +230,19 @@ class _BackupScreenState extends State<BackupScreen> {
     }
   }
 
+  Future<void> _shareBackup(BackupInfo backup) async {
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(backup.filePath)],
+          subject: 'GatoDex Backup - ${backup.fileName}',
+        ),
+      );
+    } catch (e) {
+      _showError('Error compartiendo copia de seguridad: $e');
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -389,6 +410,16 @@ class _BackupScreenState extends State<BackupScreen> {
                                       ),
                                     ),
                                     PopupMenuItem(
+                                      value: 'share',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.share),
+                                          SizedBox(width: 8),
+                                          Text('Compartir'),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuItem(
                                       value: 'delete',
                                       child: Row(
                                         children: [
@@ -403,6 +434,9 @@ class _BackupScreenState extends State<BackupScreen> {
                                     switch (value) {
                                       case 'import':
                                         _showImportDialog(backup.filePath);
+                                        break;
+                                      case 'share':
+                                        _shareBackup(backup);
                                         break;
                                       case 'delete':
                                         _deleteBackup(backup);

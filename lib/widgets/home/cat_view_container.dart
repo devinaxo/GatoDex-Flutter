@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/cat.dart';
@@ -51,6 +52,7 @@ class _CatViewContainerState extends State<CatViewContainer>
     _pageController = PageController(
       initialPage: widget.currentPage - 1,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _precacheCurrentPageImages());
   }
 
   @override
@@ -58,6 +60,21 @@ class _CatViewContainerState extends State<CatViewContainer>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.currentPage != widget.currentPage && !_isPageChanging) {
       _animateToPage(widget.currentPage - 1);
+    }
+    if (oldWidget.preloadedPages != widget.preloadedPages) {
+      _precacheCurrentPageImages();
+    }
+  }
+
+  void _precacheCurrentPageImages() {
+    final cats = widget.preloadedPages[widget.currentPage] ?? [];
+    for (final cat in cats) {
+      if (cat.picturePath != null && !cat.picturePath!.startsWith('assets/')) {
+        final file = File(cat.picturePath!);
+        if (file.existsSync()) {
+          precacheImage(FileImage(file), context);
+        }
+      }
     }
   }
 

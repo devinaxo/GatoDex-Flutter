@@ -225,7 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationName: 'gatoDex',
       applicationVersion: packageInfo.version,
       applicationIcon: Image.asset(
-        'assets/icon/meowth.png',
+        'assets/icon/icon.png',
         width: 64,
         height: 64,
       ),

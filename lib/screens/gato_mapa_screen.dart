@@ -3,10 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:io';
 import '../services/cat_service.dart';
+import '../services/image_service.dart';
 import '../models/cat.dart';
 import '../models/species.dart';
 import '../models/fur_pattern.dart';
 import '../widgets/home/cat_details_modal.dart';
+import '../utils/map_tile_helper.dart';
 import 'edit_cat_screen.dart';
 import 'add_cat_screen.dart';
 
@@ -15,17 +17,16 @@ class GatoMapaScreen extends StatefulWidget {
   _GatoMapaScreenState createState() => _GatoMapaScreenState();
 }
 
-class _GatoMapaScreenState extends State<GatoMapaScreen> {
+class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStateMixin {
   final CatService _catService = CatService();
+  final ImageService _imageService = ImageService();
   List<Cat> _allCats = [];
   List<Cat> _catsWithLocation = [];
   List<Species> _species = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
   final MapController _mapController = MapController();
-  
-  // Map settings
-  LatLng _center = LatLng(0.0000, 0.0000);
+  LatLng _center = LatLng(0.0, 0.0);
   final double _zoom = 10.0;
 
   @override
@@ -35,24 +36,17 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final cats = await _catService.getAllCats();
       final species = await _catService.getAllSpecies();
       final furPatterns = await _catService.getAllFurPatterns();
-      
       final catsWithLocation = cats.where((cat) => cat.hasLocation).toList();
-      
+
       if (catsWithLocation.isNotEmpty) {
-        double avgLat = catsWithLocation
-            .map((cat) => cat.latitude!)
-            .reduce((a, b) => a + b) / catsWithLocation.length;
-        double avgLng = catsWithLocation
-            .map((cat) => cat.longitude!)
-            .reduce((a, b) => a + b) / catsWithLocation.length;
+        final avgLat = catsWithLocation.map((c) => c.latitude!).reduce((a, b) => a + b) / catsWithLocation.length;
+        final avgLng = catsWithLocation.map((c) => c.longitude!).reduce((a, b) => a + b) / catsWithLocation.length;
         _center = LatLng(avgLat, avgLng);
       }
 
@@ -64,18 +58,50 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error cargando datos: $e')),
-      );
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error cargando datos: $e')),
+        );
+      }
     }
+  }
+
+  void _animatedMove(LatLng dest, double targetZoom) {
+    final currentZoom = _mapController.camera.zoom;
+    final currentCenter = _mapController.camera.center;
+    // Only zoom in if we're farther out than the target
+    final finalZoom = currentZoom >= targetZoom ? currentZoom : targetZoom;
+
+    final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    final curve = CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic);
+
+    final latTween = Tween<double>(begin: currentCenter.latitude, end: dest.latitude);
+    final lngTween = Tween<double>(begin: currentCenter.longitude, end: dest.longitude);
+    final zoomTween = Tween<double>(begin: currentZoom, end: finalZoom);
+
+    controller.addListener(() {
+      _mapController.move(
+        LatLng(latTween.evaluate(curve), lngTween.evaluate(curve)),
+        zoomTween.evaluate(curve),
+      );
+    });
+
+    controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+        controller.dispose();
+      }
+    });
+
+    controller.forward();
   }
 
   Widget _buildCatMarker(Cat cat, BuildContext context) {
     return GestureDetector(
-      onTap: () => _showCatDetailsModal(cat),
+      onTap: () {
+        _animatedMove(LatLng(cat.latitude!, cat.longitude!), 15.0);
+        _showCatDetailsModal(cat);
+      },
       child: Container(
         width: 50,
         height: 50,
@@ -85,11 +111,8 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
             color: Theme.of(context).colorScheme.surface,
             width: 3,
           ),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
+          boxShadow: const [
+            BoxShadow(blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: ClipOval(
@@ -97,9 +120,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
               ? Image.file(
                   File(cat.picturePath!),
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildDefaultMarker(context);
-                  },
+                  errorBuilder: (_, __, ___) => _buildDefaultMarker(context),
                 )
               : _buildDefaultMarker(context),
         ),
@@ -113,11 +134,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
         color: Theme.of(context).colorScheme.primary,
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        Icons.pets,
-        color: Theme.of(context).colorScheme.onPrimary,
-        size: 24,
-      ),
+      child: Icon(Icons.pets, color: Theme.of(context).colorScheme.onPrimary, size: 24),
     );
   }
 
@@ -128,17 +145,16 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
 
     return Scaffold(
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _catsWithLocation.isEmpty
               ? _buildEmptyState()
               : Column(
                   children: [
-                    // Stats bar
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.only(
+                        borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(16),
                           bottomRight: Radius.circular(16),
                         ),
@@ -146,28 +162,12 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem(
-                            context,
-                            Icons.pets,
-                            'Total',
-                            _allCats.length.toString(),
-                          ),
-                          _buildStatItem(
-                            context,
-                            Icons.location_on,
-                            'Con Ubicación',
-                            _catsWithLocation.length.toString(),
-                          ),
-                          _buildStatItem(
-                            context,
-                            Icons.location_off,
-                            'Sin Ubicación',
-                            (_allCats.length - _catsWithLocation.length).toString(),
-                          ),
+                          _buildStatItem(context, Icons.pets, 'Total', _allCats.length.toString()),
+                          _buildStatItem(context, Icons.location_on, 'Con Ubicación', _catsWithLocation.length.toString()),
+                          _buildStatItem(context, Icons.location_off, 'Sin Ubicación', (_allCats.length - _catsWithLocation.length).toString()),
                         ],
                       ),
                     ),
-                    // Map
                     Expanded(
                       child: Container(
                         color: isDark ? Colors.black : Colors.white,
@@ -178,29 +178,11 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
                             initialZoom: _zoom,
                             backgroundColor: isDark ? Colors.black : Colors.white,
                             interactionOptions: const InteractionOptions(
-                              flags: InteractiveFlag.pinchZoom |
-                                  InteractiveFlag.drag |
-                                  InteractiveFlag.doubleTapZoom,
+                              flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.doubleTapZoom,
                             ),
                           ),
                           children: [
-                            // Map tile layer with dark mode filter
-                            ColorFiltered(
-                              colorFilter: isDark
-                                  ? ColorFilter.matrix(<double>[
-                                      -0.2126, -0.7152, -0.0722, 0, 255, // Red channel
-                                      -0.2126, -0.7152, -0.0722, 0, 255, // Green channel
-                                      -0.2126, -0.7152, -0.0722, 0, 255, // Blue channel
-                                      0, 0, 0, 1, 0, // Alpha channel
-                                    ])
-                                  : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                              child: TileLayer(
-                                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                userAgentPackageName: 'com.devinaxo.gatodex',
-                                maxZoom: 19,
-                              ),
-                            ),
-                            // Markers layer
+                            MapTileHelper.buildTileLayer(isDark: isDark),
                             MarkerLayer(
                               markers: _catsWithLocation.map((cat) {
                                 return Marker(
@@ -221,7 +203,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
           ? FloatingActionButton(
               onPressed: _centerMapOnCats,
               tooltip: 'Centrar ubicación de gatos',
-              child: Icon(Icons.center_focus_strong),
+              child: const Icon(Icons.center_focus_strong),
             )
           : null,
     );
@@ -231,25 +213,10 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: Theme.of(context).colorScheme.primary,
-          size: 24,
-        ),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+        const SizedBox(height: 4),
+        Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ],
     );
   }
@@ -259,33 +226,13 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.location_off,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No hay gatos con ubicación',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Agrega ubicaciones a tus gatos para verlos en el mapa',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 24),
-          FilledButton(
-            onPressed: () {
-              _navigateToAddCat();
-            },
-            child: Text('Agregar Gatos'),
-          ),
+          const Icon(Icons.location_off, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text('No hay gatos con ubicación', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey)),
+          const SizedBox(height: 8),
+          Text('Agrega ubicaciones a tus gatos para verlos en el mapa', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey), textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          FilledButton(onPressed: _navigateToAddCat, child: const Text('Agregar Gatos')),
         ],
       ),
     );
@@ -295,9 +242,9 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
     if (_catsWithLocation.isEmpty) return;
 
     double minLat = _catsWithLocation.first.latitude!;
-    double maxLat = _catsWithLocation.first.latitude!;
+    double maxLat = minLat;
     double minLng = _catsWithLocation.first.longitude!;
-    double maxLng = _catsWithLocation.first.longitude!;
+    double maxLng = minLng;
 
     for (final cat in _catsWithLocation) {
       if (cat.latitude! < minLat) minLat = cat.latitude!;
@@ -306,11 +253,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
       if (cat.longitude! > maxLng) maxLng = cat.longitude!;
     }
 
-    // Calculate center and zoom level
-    final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
-    
-    // Animate to fit all markers
-    _mapController.move(center, 10.0);
+    _mapController.move(LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2), 10.0);
   }
 
   void _showCatDetailsModal(Cat cat) {
@@ -329,48 +272,34 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> {
   }
 
   Future<void> _navigateToEditCat(Cat cat) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditCatScreen(cat: cat)),
-    );
-
-    if (result == true) {
-      _loadData();
-    }
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => EditCatScreen(cat: cat)));
+    if (result == true) _loadData();
   }
 
   Future<void> _navigateToAddCat() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddCatScreen()),
-    );
-
-    if (result == true) {
-      _loadData();
-    }
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => AddCatScreen()));
+    if (result == true) _loadData();
   }
 
   void _showDeleteDialog(Cat cat) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Eliminar Gato'),
+        title: const Text('Eliminar Gato'),
         content: Text('¿Estás seguro de que quieres eliminar a ${cat.name}?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
           TextButton(
             onPressed: () async {
+              await _imageService.deleteImage(cat.picturePath);
               await _catService.deleteCat(cat.id);
               Navigator.pop(context);
               _loadData();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${cat.name} eliminado')),
-              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${cat.name} eliminado')));
+              }
             },
-            child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
