@@ -90,6 +90,9 @@ flutter:
     - assets/images/placeholder.jpg
     - assets/images/github-icon.png
     - assets/images/twitter-icon.png
+    - assets/images/palico-failure.png
+    - assets/images/palico-neutral.png
+    - assets/images/palico-success.png
     - assets/icon/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

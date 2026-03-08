@@ -115,7 +115,7 @@ class CatMosaicItem extends StatelessWidget {
   Widget _buildPlaceholderImage(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.primaryContainer,
-      child: Icon(Icons.pets, size: 48, color: Theme.of(context).colorScheme.primary),
+      child: Center(child: Image.asset('assets/images/palico-neutral.png', width: 48, height: 48)),
     );
   }
 }

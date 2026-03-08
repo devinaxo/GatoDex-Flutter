@@ -199,13 +199,25 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
                     ),
                   ],
                 ),
-      floatingActionButton: _catsWithLocation.isNotEmpty
-          ? FloatingActionButton(
-              onPressed: _centerMapOnCats,
-              tooltip: 'Centrar ubicación de gatos',
-              child: const Icon(Icons.center_focus_strong),
-            )
-          : null,
+      floatingActionButton: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_catsWithLocation.isNotEmpty)
+              FloatingActionButton.small(
+                heroTag: 'center',
+                onPressed: _centerMapOnCats,
+                tooltip: 'Centrar ubicación de gatos',
+                child: const Icon(Icons.center_focus_strong),
+              ),
+            if (_catsWithLocation.isNotEmpty) const SizedBox(height: 8),
+            FloatingActionButton.small(
+              heroTag: 'refresh',
+              onPressed: _loadData,
+              tooltip: 'Actualizar datos',
+              child: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
     );
   }
 

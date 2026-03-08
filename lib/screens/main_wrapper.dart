@@ -88,6 +88,8 @@ class _MainWrapperState extends State<MainWrapper> {
   static const _pageTitles = ['gatoDex', 'gatoMapa', 'gatoConfiguración'];
 
   void _onDrawerItemTapped(int index) {
+    // Clear cached map so it reloads fresh data each visit
+    if (index == 1) _builtPages.remove(1);
     setState(() => _selectedIndex = index);
     Navigator.pop(context);
   }

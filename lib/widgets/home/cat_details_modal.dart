@@ -256,11 +256,7 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
         borderRadius: BorderRadius.circular(20),
         color: Theme.of(context).colorScheme.primaryContainer,
       ),
-      child: Icon(
-        Icons.pets,
-        size: 80,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: Image.asset('assets/images/palico-neutral.png', width: 80, height: 80),
     );
   }
 

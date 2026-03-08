@@ -130,7 +130,7 @@ class _CatViewContainerState extends State<CatViewContainer>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.pets, size: 64, color: Colors.grey),
+            Image.asset('assets/images/palico-failure.png', width: 80, height: 80),
             SizedBox(height: 16),
             Text(
               'No hay gatos registrados',

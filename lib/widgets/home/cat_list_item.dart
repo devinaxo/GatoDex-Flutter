@@ -70,6 +70,6 @@ class CatListItem extends StatelessWidget {
   }
 
   Widget _buildFallbackIcon(BuildContext context) {
-    return Icon(Icons.pets, color: Theme.of(context).colorScheme.primary, size: 25);
+    return ClipOval(child: Image.asset('assets/images/palico-neutral.png', width: 50, height: 50, fit: BoxFit.cover));
   }
 }

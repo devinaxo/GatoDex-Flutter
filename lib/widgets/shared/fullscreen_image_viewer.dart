@@ -85,11 +85,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
         color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Icon(
-        Icons.pets,
-        size: 80,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: Image.asset('assets/images/palico-failure.png', width: 80, height: 80),
     );
   }
 
