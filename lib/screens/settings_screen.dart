@@ -224,10 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       applicationName: 'gatoDex',
       applicationVersion: packageInfo.version,
-      applicationIcon: Image.asset(
-        'assets/icon/meowth.png',
-        width: 64,
-        height: 64,
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset('assets/icon/icon.png', width: 64, height: 64),
       ),
       children: [
         const Text(
@@ -247,35 +246,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.grey.shade300, width: 2),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Image.asset(
-                        'assets/images/github-icon.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                      ),
+                      borderRadius: BorderRadius.circular(11),
+                      child: Image.asset('assets/images/github-icon.png', width: 60, height: 60, fit: BoxFit.cover),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () => _launchURL('https://devinaxo.github.io'),
-                  child: const Text(
-                    'devinaxo.github.io',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                    ),
-                  ),
+                  child: const Text('devinaxo.github.io', style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline, fontSize: 12)),
                 ),
               ],
             ),
-            // Twitter icon and link
             Column(
               children: [
                 GestureDetector(
@@ -284,17 +270,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.grey.shade300, width: 2),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Image.asset(
-                        'assets/images/twitter-icon.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                      ),
+                      borderRadius: BorderRadius.circular(11),
+                      child: Image.asset('assets/images/twitter-icon.png', width: 60, height: 60, fit: BoxFit.cover),
                     ),
                   ),
                 ),

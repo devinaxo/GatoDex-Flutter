@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../utils/map_tile_helper.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final double? initialLatitude;
@@ -33,26 +34,19 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   }
 
   void _onMapTap(TapPosition tapPosition, LatLng point) {
-    setState(() {
-      selectedLocation = point;
-    });
+    setState(() => selectedLocation = point);
     widget.onLocationSelected(point.latitude, point.longitude);
   }
 
   void _clearLocation() {
-    setState(() {
-      selectedLocation = null;
-    });
+    setState(() => selectedLocation = null);
     widget.onLocationSelected(null, null);
   }
 
   Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-    });
+    setState(() => _isLoadingLocation = true);
 
     try {
-      // Check and request location permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -63,67 +57,46 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la configuración.');
+        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la gatoConfiguración.');
         return;
       }
 
-      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _showLocationError('Los servicios de ubicación están deshabilitados. Por favor, habilítalos.');
         return;
       }
 
-      // Get current position
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final currentLocation = LatLng(position.latitude, position.longitude);
 
-      // Update location
-      LatLng currentLocation = LatLng(position.latitude, position.longitude);
-      setState(() {
-        selectedLocation = currentLocation;
-      });
-
-      // Move map to current location
+      setState(() => selectedLocation = currentLocation);
       mapController.move(currentLocation, 15.0);
-      
-      // Notify parent widget
       widget.onLocationSelected(position.latitude, position.longitude);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ubicación actual establecida'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: Duration(seconds: 2),
-          ),
+          SnackBar(content: const Text('Ubicación actual establecida'), backgroundColor: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2)),
         );
       }
     } catch (e) {
       _showLocationError('Error al obtener la ubicación: ${e.toString()}');
     } finally {
-      setState(() {
-        _isLoadingLocation = false;
-      });
+      setState(() => _isLoadingLocation = false);
     }
   }
 
   void _showLocationError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: Duration(seconds: 4),
-        ),
+        SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error, duration: const Duration(seconds: 4)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final center = selectedLocation ?? LatLng(40.7128, -74.0060); // Default to NYC
+    final center = selectedLocation ?? LatLng(40.7128, -74.0060);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -135,71 +108,40 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       ),
       child: Column(
         children: [
-          // Map controls
           Container(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
             ),
             child: Row(
               children: [
                 Icon(Icons.info_outline, size: 16, color: colorScheme.onSurfaceVariant),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    'Toca en el mapa para seleccionar ubicación',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  child: Text('Toca en el mapa para seleccionar ubicación', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                 ),
-                // Current location button
                 IconButton(
                   onPressed: _isLoadingLocation ? null : _getCurrentLocation,
                   icon: _isLoadingLocation
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
-                          ),
-                        )
-                      : Icon(Icons.my_location, size: 18),
+                      ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary))
+                      : const Icon(Icons.my_location, size: 18),
                   tooltip: 'Usar mi ubicación actual',
-                  style: IconButton.styleFrom(
-                    padding: EdgeInsets.all(8),
-                    minimumSize: Size(32, 32),
-                    foregroundColor: colorScheme.primary,
-                  ),
+                  style: IconButton.styleFrom(padding: const EdgeInsets.all(8), minimumSize: const Size(32, 32), foregroundColor: colorScheme.primary),
                 ),
                 if (selectedLocation != null)
                   TextButton.icon(
                     onPressed: _clearLocation,
-                    icon: Icon(Icons.clear, size: 16),
-                    label: Text('Limpiar'),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size(0, 32),
-                      foregroundColor: colorScheme.primary,
-                    ),
+                    icon: const Icon(Icons.clear, size: 16),
+                    label: const Text('Limpiar'),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8), minimumSize: const Size(0, 32), foregroundColor: colorScheme.primary),
                   ),
               ],
             ),
           ),
-          
-          // Map
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
+              borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
               child: Container(
                 color: isDark ? Colors.black : Colors.white,
                 child: FlutterMap(
@@ -210,29 +152,11 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                     onTap: _onMapTap,
                     backgroundColor: isDark ? Colors.black : Colors.white,
                     interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.pinchZoom | 
-                             InteractiveFlag.drag |
-                             InteractiveFlag.doubleTapZoom,
+                      flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.doubleTapZoom,
                     ),
                   ),
                   children: [
-                    // Map tile layer with dark mode filter
-                    ColorFiltered(
-                      colorFilter: isDark
-                          ? ColorFilter.matrix([
-                              -0.2126, -0.7152, -0.0722, 0, 255, // Red channel
-                              -0.2126, -0.7152, -0.0722, 0, 255, // Green channel
-                              -0.2126, -0.7152, -0.0722, 0, 255, // Blue channel
-                              0, 0, 0, 1, 0, // Alpha channel
-                            ])
-                          : ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                      child: TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.devinaxo.gatodex',
-                        maxZoom: 19,
-                      ),
-                    ),
-                    // Marker layer
+                    MapTileHelper.buildTileLayer(isDark: isDark),
                     if (selectedLocation != null)
                       MarkerLayer(
                         markers: [
@@ -244,23 +168,12 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               decoration: BoxDecoration(
                                 color: colorScheme.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorScheme.surface, 
-                                  width: 2
-                                ),
+                                border: Border.all(color: colorScheme.surface, width: 2),
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.shadow.withValues(alpha: 0.3),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
+                                  BoxShadow(color: colorScheme.shadow.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2)),
                                 ],
                               ),
-                              child: Icon(
-                                Icons.pets,
-                                color: colorScheme.onPrimary,
-                                size: 20,
-                              ),
+                              child: Icon(Icons.pets, color: colorScheme.onPrimary, size: 20),
                             ),
                           ),
                         ],

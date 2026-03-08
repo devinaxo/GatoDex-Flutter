@@ -23,6 +23,42 @@ class CatService {
     return await _databaseHelper.getCatsCount();
   }
 
+  Future<List<Cat>> getCatsFiltered({
+    int offset = 0,
+    int limit = 15,
+    String? searchName,
+    int? speciesId,
+    int? furPatternId,
+    String? dateFrom,
+    String? dateTo,
+  }) async {
+    return await _databaseHelper.getCatsFiltered(
+      offset: offset,
+      limit: limit,
+      searchName: searchName,
+      speciesId: speciesId,
+      furPatternId: furPatternId,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+    );
+  }
+
+  Future<int> getCatsFilteredCount({
+    String? searchName,
+    int? speciesId,
+    int? furPatternId,
+    String? dateFrom,
+    String? dateTo,
+  }) async {
+    return await _databaseHelper.getCatsFilteredCount(
+      searchName: searchName,
+      speciesId: speciesId,
+      furPatternId: furPatternId,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+    );
+  }
+
   Future<Cat?> getCatById(int id) async {
     return await _databaseHelper.getCat(id);
   }

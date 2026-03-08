@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/cat.dart';
+import '../../utils/helpers.dart';
 
 class CatListItem extends StatelessWidget {
   final Cat cat;
@@ -23,67 +24,30 @@ class CatListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           radius: 25,
           child: cat.picturePath != null
               ? ClipOval(
                   child: cat.picturePath!.startsWith('assets/')
-                      ? Image.asset(
-                          cat.picturePath!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.pets,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 25,
-                            );
-                          },
-                        )
-                      : Image.file(
-                          File(cat.picturePath!),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.pets,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 25,
-                            );
-                          },
-                        ),
+                      ? Image.asset(cat.picturePath!, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context))
+                      : Image.file(File(cat.picturePath!), width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context)),
                 )
-              : Icon(
-                  Icons.pets,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 25,
-                ),
+              : _buildFallbackIcon(context),
         ),
-        title: Text(
-          cat.name,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18), maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Especie: $speciesName',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              'Patrón: $furPatternName',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text('$speciesName • $furPatternName', maxLines: 1, overflow: TextOverflow.ellipsis),
+            if (cat.dateMet != null)
+              Text(
+                AppHelpers.formatDate(cat.dateMet),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
           ],
         ),
         onTap: onTap,
@@ -92,37 +56,20 @@ class CatListItem extends StatelessWidget {
           child: PopupMenuButton(
             padding: EdgeInsets.zero,
             itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit),
-                  SizedBox(width: 8),
-                  Text('Editar'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Eliminar', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-          onSelected: (value) {
-            if (value == 'edit') {
-              onEdit();
-            } else if (value == 'delete') {
-              onDelete();
-            }
-          },
+              const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Editar')])),
+              const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: Colors.red))])),
+            ],
+            onSelected: (value) {
+              if (value == 'edit') onEdit();
+              if (value == 'delete') onDelete();
+            },
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildFallbackIcon(BuildContext context) {
+    return ClipOval(child: Image.asset('assets/images/palico-neutral.png', width: 50, height: 50, fit: BoxFit.cover));
   }
 }

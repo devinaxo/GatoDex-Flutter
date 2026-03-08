@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/cat.dart';
+import '../../utils/helpers.dart';
 
 class CatMosaicItem extends StatelessWidget {
   final Cat cat;
@@ -22,138 +23,90 @@ class CatMosaicItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: cat.picturePath != null
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image takes most of the card
+            Expanded(
+              flex: 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  cat.picturePath != null
                       ? cat.picturePath!.startsWith('assets/')
-                          ? Image.asset(
-                              cat.picturePath!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildPlaceholderImage(context);
-                              },
-                            )
-                          : Image.file(
-                              File(cat.picturePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildPlaceholderImage(context);
-                              },
-                            )
+                          ? Image.asset(cat.picturePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholderImage(context))
+                          : Image.file(File(cat.picturePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholderImage(context))
                       : _buildPlaceholderImage(context),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Name and menu button row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              cat.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                  // Menu button overlay
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: PopupMenuButton(
+                        padding: EdgeInsets.zero,
+                        icon: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black38,
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: PopupMenuButton(
-                              padding: EdgeInsets.zero,
-                              icon: Icon(Icons.more_vert, size: 18),
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit, size: 16),
-                                      SizedBox(width: 8),
-                                      Text('Editar'),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                        size: 16,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Eliminar',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  onEdit();
-                                } else if (value == 'delete') {
-                                  onDelete();
-                                }
-                              },
-                            ),
-                          ),
+                          child: const Icon(Icons.more_vert, size: 16, color: Colors.white),
+                        ),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Editar')])),
+                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red, size: 16), SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: Colors.red))])),
                         ],
+                        onSelected: (value) {
+                          if (value == 'edit') onEdit();
+                          if (value == 'delete') onDelete();
+                        },
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        speciesName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        furPatternName,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[500],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            // Compact info section
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    cat.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    speciesName,
+                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (cat.dateMet != null) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      AppHelpers.formatDate(cat.dateMet),
+                      style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                      maxLines: 1,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -162,11 +115,7 @@ class CatMosaicItem extends StatelessWidget {
   Widget _buildPlaceholderImage(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.primaryContainer,
-      child: Icon(
-        Icons.pets,
-        size: 60,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: Center(child: Image.asset('assets/images/palico-neutral.png', width: 48, height: 48)),
     );
   }
 }
