@@ -4,11 +4,13 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/backup_screen.dart';
 import 'services/theme_service.dart';
+import 'database/database_helper.dart';
 import 'utils/constants.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await ThemeService().init();
+  ThemeService().init();
+  DatabaseHelper().database; // Pre-warm database
   runApp(const MyApp());
 }
 

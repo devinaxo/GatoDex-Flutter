@@ -17,6 +17,7 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
   String _version = '';
+  bool _versionLoaded = false;
 
   final Map<int, Widget> _builtPages = {};
   bool _hasVisitedMap = false;
@@ -26,7 +27,6 @@ class _MainWrapperState extends State<MainWrapper> {
   @override
   void initState() {
     super.initState();
-    _loadVersion();
     _setupFileIntentHandler();
   }
 
@@ -60,7 +60,9 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  Future<void> _loadVersion() async {
+  Future<void> _loadVersionIfNeeded() async {
+    if (_versionLoaded) return;
+    _versionLoaded = true;
     final info = await PackageInfo.fromPlatform();
     if (mounted) setState(() => _version = info.version);
   }
@@ -83,7 +85,7 @@ class _MainWrapperState extends State<MainWrapper> {
     return _builtPages[index]!;
   }
 
-  static const _pageTitles = ['gatoDex', 'gatoMapa', 'Configuración'];
+  static const _pageTitles = ['gatoDex', 'gatoMapa', 'gatoConfiguración'];
 
   void _onDrawerItemTapped(int index) {
     setState(() => _selectedIndex = index);
@@ -100,7 +102,10 @@ class _MainWrapperState extends State<MainWrapper> {
         title: Text(_pageTitles[_selectedIndex]),
         centerTitle: true,
       ),
-      drawer: Drawer(
+      drawer: Builder(
+        builder: (context) {
+          _loadVersionIfNeeded();
+          return Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -110,7 +115,10 @@ class _MainWrapperState extends State<MainWrapper> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Icon(Icons.pets, size: 48, color: colorScheme.onPrimaryContainer),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset('assets/icon/icon.png', width: 48, height: 48),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'gatoDex',
@@ -145,7 +153,7 @@ class _MainWrapperState extends State<MainWrapper> {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Configuración'),
+              title: const Text('gatoConfiguración'),
               subtitle: const Text('Ajustes de la app'),
               selected: _selectedIndex == 2,
               onTap: () => _onDrawerItemTapped(2),
@@ -217,7 +225,9 @@ class _MainWrapperState extends State<MainWrapper> {
                 ),
               ),
           ],
-        ),
+          ),
+          );
+        },
       ),
       body: IndexedStack(
         index: _selectedIndex,

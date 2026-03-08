@@ -35,6 +35,7 @@ class ThemeService extends ChangeNotifier {
         (e) => e.name == saved,
         orElse: () => AppThemeMode.materialYou,
       );
+      notifyListeners();
     }
   }
 

@@ -105,10 +105,17 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      final species = await _catService.getAllSpecies();
-      final furPatterns = await _catService.getAllFurPatterns();
-      final cats = await _fetchCats(offset: 0, limit: _pageSize);
-      final totalCats = await _fetchCount();
+      final results = await Future.wait([
+        _catService.getAllSpecies(),
+        _catService.getAllFurPatterns(),
+        _fetchCats(offset: 0, limit: _pageSize),
+        _fetchCount(),
+      ]);
+
+      final species = results[0] as List<Species>;
+      final furPatterns = results[1] as List<FurPattern>;
+      final cats = results[2] as List<Cat>;
+      final totalCats = results[3] as int;
 
       setState(() {
         _species = species;
@@ -133,11 +140,18 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isRefreshing = true);
 
     try {
-      final species = await _catService.getAllSpecies();
-      final furPatterns = await _catService.getAllFurPatterns();
       final offset = (_currentPage - 1) * _pageSize;
-      final cats = await _fetchCats(offset: offset, limit: _pageSize);
-      final totalCats = await _fetchCount();
+      final results = await Future.wait([
+        _catService.getAllSpecies(),
+        _catService.getAllFurPatterns(),
+        _fetchCats(offset: offset, limit: _pageSize),
+        _fetchCount(),
+      ]);
+
+      final species = results[0] as List<Species>;
+      final furPatterns = results[1] as List<FurPattern>;
+      final cats = results[2] as List<Cat>;
+      final totalCats = results[3] as int;
 
       setState(() {
         _species = species;

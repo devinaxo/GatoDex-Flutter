@@ -57,7 +57,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la configuración.');
+        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la gatoConfiguración.');
         return;
       }
 
