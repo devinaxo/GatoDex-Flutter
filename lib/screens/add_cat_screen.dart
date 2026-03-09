@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../services/cat_service.dart';
+import '../services/cat_data_notifier.dart';
 import '../widgets/forms/cat_form_widget.dart';
 
 class AddCatScreen extends StatelessWidget {
@@ -17,6 +18,7 @@ class AddCatScreen extends StatelessWidget {
         saveButtonLabel: l10n.addCat,
         onSave: (cat, imagePath) async {
           await _catService.addCat(cat);
+          CatDataNotifier().notifyDataChanged();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(l10n.catAddedSuccess(cat.name))),

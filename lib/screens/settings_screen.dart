@@ -5,6 +5,7 @@ import 'package:gatodex/l10n/app_localizations.dart';
 import 'backup_screen.dart';
 import 'database_management_screen.dart';
 import '../services/cat_service.dart';
+import '../services/cat_data_notifier.dart';
 import '../services/cat_name_api_service.dart';
 import '../models/cat.dart';
 
@@ -427,6 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         setState(() {});
+        CatDataNotifier().notifyDataChanged();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.allCatsDeleted),
@@ -502,6 +504,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         setState(() {});
+        CatDataNotifier().notifyDataChanged();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.testCatsAddedSuccess(catNames.join(", "))),

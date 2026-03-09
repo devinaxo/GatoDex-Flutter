@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../services/backup_service.dart';
+import '../services/cat_data_notifier.dart';
 
 class BackupScreen extends StatefulWidget {
   final String? initialImportPath;
@@ -18,7 +19,6 @@ class _BackupScreenState extends State<BackupScreen> {
   List<BackupInfo> _backups = [];
   bool _isLoading = true;
   bool _isExporting = false;
-  bool _needsRefresh = false;
 
   @override
   void initState() {
@@ -69,7 +69,7 @@ class _BackupScreenState extends State<BackupScreen> {
       );
 
       _loadBackups();
-      _needsRefresh = true;
+
     } catch (e) {
       setState(() {
         _isExporting = false;
@@ -127,7 +127,7 @@ class _BackupScreenState extends State<BackupScreen> {
         }
 
         _showSuccessDialog(l10n.importSuccess, message);
-        _needsRefresh = true;
+        CatDataNotifier().notifyDataChanged();
       } else {
         _showError(l10n.importError(result.errors.join(', ')));
       }
@@ -293,7 +293,7 @@ class _BackupScreenState extends State<BackupScreen> {
     final l10n = AppLocalizations.of(context);
     return WillPopScope(
       onWillPop: () async {
-        Navigator.of(context).pop(_needsRefresh);
+        Navigator.of(context).pop();
         return false;
       },
       child: Scaffold(
