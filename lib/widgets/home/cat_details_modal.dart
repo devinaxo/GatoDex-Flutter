@@ -123,19 +123,26 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                         if (widget.cat.aliases.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Center(
-                            child: Wrap(
-                              spacing: 6,
-                              runSpacing: 4,
-                              alignment: WrapAlignment.center,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(l10n.aliasesDetailLabel,
                                     style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                ...widget.cat.aliases.map((alias) => Chip(
-                                  label: Text(alias, style: const TextStyle(fontSize: 12)),
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                )),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    alignment: WrapAlignment.center,
+                                    children: widget.cat.aliases.map((alias) => Chip(
+                                      label: Text(alias, style: const TextStyle(fontSize: 12)),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    )).toList(),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
