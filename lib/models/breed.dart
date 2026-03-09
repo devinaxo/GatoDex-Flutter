@@ -1,9 +1,9 @@
-class FurPattern {
+class Breed {
   final int id;
   final String name;
   final String? nameKey;
 
-  FurPattern({
+  Breed({
     required this.id,
     required this.name,
     this.nameKey,
@@ -17,8 +17,8 @@ class FurPattern {
     };
   }
 
-  factory FurPattern.fromMap(Map<String, dynamic> map) {
-    return FurPattern(
+  factory Breed.fromMap(Map<String, dynamic> map) {
+    return Breed(
       id: map['id'],
       name: map['name'],
       nameKey: map['name_key'],
@@ -27,6 +27,6 @@ class FurPattern {
 
   @override
   String toString() {
-    return 'FurPattern{id: $id, name: $name, nameKey: $nameKey}';
+    return 'Breed{id: $id, name: $name, nameKey: $nameKey}';
   }
 }

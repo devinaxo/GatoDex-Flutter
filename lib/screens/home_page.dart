@@ -5,11 +5,12 @@ import '../services/cat_service.dart';
 import '../services/image_service.dart';
 import '../services/cat_data_notifier.dart';
 import '../models/cat.dart';
-import '../models/species.dart';
+import '../models/breed.dart';
 import '../models/fur_pattern.dart';
 import '../widgets/home/cat_view_container.dart';
 import '../widgets/home/cat_details_modal.dart';
 import '../utils/helpers.dart';
+import '../utils/breed_fur_translations.dart';
 import 'edit_cat_screen.dart';
 import 'add_cat_screen.dart';
 
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   final CatService _catService = CatService();
   final ImageService _imageService = ImageService();
   final CatDataNotifier _dataNotifier = CatDataNotifier();
-  List<Species> _species = [];
+  List<Breed> _breeds = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
   bool _isRefreshing = false;
@@ -41,7 +42,7 @@ class _HomePageState extends State<HomePage> {
   // Search & filter state
   final _searchController = TextEditingController();
   String? _searchQuery;
-  int? _filterSpeciesId;
+  int? _filterBreedId;
   int? _filterFurPatternId;
   String? _filterDateFrom;
   String? _filterDateTo;
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
 
   bool get _hasActiveFilters =>
       (_searchQuery != null && _searchQuery!.isNotEmpty) ||
-      _filterSpeciesId != null ||
+      _filterBreedId != null ||
       _filterFurPatternId != null ||
       _filterDateFrom != null ||
       _filterDateTo != null;
@@ -90,7 +91,7 @@ class _HomePageState extends State<HomePage> {
       offset: offset,
       limit: limit,
       searchName: _searchQuery,
-      speciesId: _filterSpeciesId,
+      breedId: _filterBreedId,
       furPatternId: _filterFurPatternId,
       dateFrom: _filterDateFrom,
       dateTo: _filterDateTo,
@@ -100,7 +101,7 @@ class _HomePageState extends State<HomePage> {
   Future<int> _fetchCount() {
     return _catService.getCatsFilteredCount(
       searchName: _searchQuery,
-      speciesId: _filterSpeciesId,
+      breedId: _filterBreedId,
       furPatternId: _filterFurPatternId,
       dateFrom: _filterDateFrom,
       dateTo: _filterDateTo,
@@ -115,19 +116,19 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final results = await Future.wait([
-        _catService.getAllSpecies(),
+        _catService.getAllBreeds(),
         _catService.getAllFurPatterns(),
         _fetchCats(offset: 0, limit: _pageSize),
         _fetchCount(),
       ]);
 
-      final species = results[0] as List<Species>;
+      final breeds = results[0] as List<Breed>;
       final furPatterns = results[1] as List<FurPattern>;
       final cats = results[2] as List<Cat>;
       final totalCats = results[3] as int;
 
       setState(() {
-        _species = species;
+        _breeds = breeds;
         _furPatterns = furPatterns;
         _totalCats = totalCats;
         _totalPages = (totalCats / _pageSize).ceil();
@@ -152,19 +153,19 @@ class _HomePageState extends State<HomePage> {
     try {
       final offset = (_currentPage - 1) * _pageSize;
       final results = await Future.wait([
-        _catService.getAllSpecies(),
+        _catService.getAllBreeds(),
         _catService.getAllFurPatterns(),
         _fetchCats(offset: offset, limit: _pageSize),
         _fetchCount(),
       ]);
 
-      final species = results[0] as List<Species>;
+      final breeds = results[0] as List<Breed>;
       final furPatterns = results[1] as List<FurPattern>;
       final cats = results[2] as List<Cat>;
       final totalCats = results[3] as int;
 
       setState(() {
-        _species = species;
+        _breeds = breeds;
         _furPatterns = furPatterns;
         _totalCats = totalCats;
         _totalPages = (totalCats / _pageSize).ceil();
@@ -258,7 +259,7 @@ class _HomePageState extends State<HomePage> {
   void _clearAllFilters() {
     _searchController.clear();
     _searchQuery = null;
-    _filterSpeciesId = null;
+    _filterBreedId = null;
     _filterFurPatternId = null;
     _filterDateFrom = null;
     _filterDateTo = null;
@@ -416,7 +417,7 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: CatViewContainer(
                       preloadedPages: _preloadedPages,
-                      species: _species,
+                      breeds: _breeds,
                       furPatterns: _furPatterns,
                       isMosaicView: _isMosaicView,
                       currentPage: _currentPage,
@@ -450,11 +451,11 @@ class _HomePageState extends State<HomePage> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              // Species filter
+              // Breed filter
               DropdownMenu<int?>(
-                label: Text(l10n.species),
+                label: Text(l10n.breed),
                 width: 200,
-                initialSelection: _filterSpeciesId,
+                initialSelection: _filterBreedId,
                 textStyle: const TextStyle(fontSize: 13),
                 inputDecorationTheme: InputDecorationTheme(
                   isDense: true,
@@ -464,11 +465,11 @@ class _HomePageState extends State<HomePage> {
                   fillColor: colorScheme.surfaceContainerHighest,
                 ),
                 dropdownMenuEntries: [
-                  DropdownMenuEntry(value: null, label: l10n.allSpecies),
-                  ..._species.map((s) => DropdownMenuEntry(value: s.id, label: s.name)),
+                  DropdownMenuEntry(value: null, label: l10n.allBreeds),
+                  ..._breeds.map((b) => DropdownMenuEntry(value: b.id, label: getLocalizedBreedName(context, b))),
                 ],
                 onSelected: (value) {
-                  setState(() => _filterSpeciesId = value);
+                  setState(() => _filterBreedId = value);
                   _clearPreloadedPagesAndReload();
                 },
               ),
@@ -487,7 +488,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 dropdownMenuEntries: [
                   DropdownMenuEntry(value: null, label: l10n.allPatterns),
-                  ..._furPatterns.map((fp) => DropdownMenuEntry(value: fp.id, label: fp.name)),
+                  ..._furPatterns.map((fp) => DropdownMenuEntry(value: fp.id, label: getLocalizedFurPatternName(context, fp))),
                 ],
                 onSelected: (value) {
                   setState(() => _filterFurPatternId = value);
@@ -553,7 +554,12 @@ class _HomePageState extends State<HomePage> {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () async {
-              await _imageService.deleteImage(cat.picturePath);
+              // Delete all photos for this cat
+              for (final photo in cat.photos) {
+                if (!photo.photoPath.startsWith('assets/')) {
+                  await _imageService.deleteImage(photo.photoPath);
+                }
+              }
               await _catService.deleteCat(cat.id);
               Navigator.pop(context);
               _clearPreloadedPagesAndReload();
@@ -591,7 +597,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.transparent,
       builder: (context) => CatDetailsModal(
         cat: cat,
-        species: _species,
+        breeds: _breeds,
         furPatterns: _furPatterns,
         onEdit: () => _navigateToEditCat(cat),
         onDelete: () => _showDeleteDialog(cat),

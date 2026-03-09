@@ -2,7 +2,7 @@
   "@@locale": "es",
 
   "appName": "Gatodex",
-  "appTagline": "Tu colección de gatos",
+  "appTagline": "Tu colección de кошки",
 
   "gatoDex": "gatoDex",
   "gatoMapa": "gatoMapa",
@@ -24,11 +24,11 @@
   "languageEnglish": "English",
   "languageSpanish": "Español",
 
-  "searchByName": "Buscar por nombre...",
+  "searchByName": "Buscar por nombre o alias...",
   "filters": "Filtros",
-  "species": "Especie",
+  "breed": "Raza",
   "furPattern": "Patrón",
-  "allSpecies": "Todas",
+  "allBreeds": "Todas",
   "allPatterns": "Todos",
   "dateRange": "Rango de fechas",
   "clearFilters": "Limpiar",
@@ -69,8 +69,8 @@
   "generateRandomName": "Generar nombre aleatorio",
   "errorGeneratingName": "Error generando nombre: {error}",
 
-  "speciesLabel": "Especie",
-  "pleaseSelectSpecies": "Por favor selecciona una especie",
+  "breedLabel": "Raza",
+  "pleaseSelectBreed": "Por favor selecciona una raza",
   "furPatternLabel": "Patrón de Pelaje (Opcional)",
   "noPattern": "Sin Patrón",
   "dateMetLabel": "Fecha de Encuentro (Opcional)",
@@ -83,19 +83,28 @@
   "chooseFromGallery": "Elegir de galería",
   "deletePhoto": "Eliminar foto",
   "permissionDenied": "Permiso denegado",
+  "photosLabel": "Fotos",
+  "photosCount": "{count}/5 fotos",
+  "maxPhotosReached": "Máximo de 5 fotos alcanzado",
+
+  "aliasesLabel": "Alias (Opcional)",
+  "aliasHint": "Nombre del alias",
+  "addAlias": "Agregar alias",
+  "aliasEmpty": "Por favor ingresa un alias",
 
   "saving": "Guardando...",
 
-  "unknownSpecies": "Especie Desconocida",
+  "unknownBreed": "Raza Desconocida",
   "unknownPattern": "Patrón Desconocido",
   "unknownDate": "Fecha Desconocida",
   "noLocation": "Sin Ubicación",
 
-  "speciesDetailLabel": "Especie",
+  "breedDetailLabel": "Raza",
   "furPatternDetailLabel": "Patrón de Pelaje",
   "locationLabel": "Ubicación",
   "dateMetDetailLabel": "Fecha de Encuentro",
   "photoLabel": "Foto",
+  "aliasesDetailLabel": "Alias",
 
   "tapMapToSelectLocation": "Toca en el mapa para seleccionar ubicación",
   "useMyCurrentLocation": "Usar mi ubicación actual",
@@ -123,8 +132,8 @@
   "manageBackups": "Gestionar copias de seguridad",
   "about": "Acerca de",
   "appInfo": "Información de la aplicación",
-  "appDescription": "Una aplicación para catalogar y gestionar información sobre gatos que te encuentres.",
-  "developedWithFlutter": "Desarrollado con Flutter",
+  "appDescription": "Una aplicación y mi proyecto de pasión personal para catalogar y gestionar información sobre gatos que te encuentres, sean de la calle o no. Inspirada por mi necesidad de hacer exactamente eso en mi vida diaria.",
+  "developedWithFlutter": "Desarrollado con Flutter y mucho amor",
 
   "testingAdvanced": "Testing (Avanzado!)",
   "advancedWarning": "Estas opciones son principalmente para desarrolladores. Si no sabes lo que estás haciendo, probablemente no deberías tocar esto.",
@@ -141,7 +150,7 @@
   "addData": "Agregar Datos",
   "testCatsAddedSuccess": "¡3 gatos de prueba agregados exitosamente con nombres: {names}!",
   "errorAddingTestCats": "Error al agregar gatos de prueba: {error}",
-  "noSpeciesAvailable": "No hay especies disponibles. Necesitas al menos una especie para crear gatos de prueba.",
+  "noBreedsAvailable": "No hay razas disponibles. Necesitas al menos una raza para crear gatos de prueba.",
 
   "dangerTitle": "¡Peligro!",
   "deleteAllCatsConfirm": "¿Estás COMPLETAMENTE SEGURO de que quieres eliminar TODOS los gatos?\n\n⚠️ Esta acción NO se puede deshacer.\n⚠️ Se perderán TODOS los datos de gatos.\n⚠️ Las fotos también se eliminarán.\n\nSolo procede si sabes exactamente lo que estás haciendo.",
@@ -222,5 +231,29 @@
 
   "errorLoadingData": "Error cargando datos: {error}",
   "errorRefreshingData": "Error actualizando datos: {error}",
-  "errorLoadingPage": "Error cargando página: {error}"
+  "errorLoadingPage": "Error cargando página: {error}",
+
+  "breedDomesticShorthair": "Pelo Corto Doméstico",
+  "breedDomesticLonghair": "Pelo Largo Doméstico",
+  "breedPersian": "Persa",
+  "breedMaineCoon": "Maine Coon",
+  "breedSiamese": "Siamés",
+  "breedBritishShorthair": "Británico de Pelo Corto",
+  "breedRussianBlue": "Azul Ruso",
+  "breedRagdoll": "Ragdoll",
+  "breedBengal": "Bengalí",
+  "breedScottishFold": "Scottish Fold",
+
+  "furPatternSolid": "Sólido",
+  "furPatternTabby": "Atigrado",
+  "furPatternCalico": "Carey",
+  "furPatternTortoiseshell": "Tortuga",
+  "furPatternBicolor": "Bicolor",
+  "furPatternTricolor": "Tricolor",
+  "furPatternSpotted": "Manchado",
+  "furPatternPointed": "Punteado",
+  "furPatternColorpoint": "Colorpoint",
+  "furPatternSmoke": "Humo",
+  "furPatternShaded": "Sombreado",
+  "furPatternChinchilla": "Chinchilla"
 }

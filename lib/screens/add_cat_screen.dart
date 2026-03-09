@@ -16,8 +16,8 @@ class AddCatScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.addCat)),
       body: CatFormWidget(
         saveButtonLabel: l10n.addCat,
-        onSave: (cat, imagePath) async {
-          await _catService.addCat(cat);
+        onSave: (cat, photoPaths, aliases) async {
+          await _catService.addCatWithDetails(cat, aliases, photoPaths);
           CatDataNotifier().notifyDataChanged();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
