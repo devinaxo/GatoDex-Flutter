@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
 import '../../models/species.dart';
 import '../../models/fur_pattern.dart';
@@ -49,18 +50,21 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
   }
 
   String _getSpeciesName(int speciesId) {
+    final l10n = AppLocalizations.of(context);
     final foundSpecies = widget.species.where((s) => s.id == speciesId);
-    return foundSpecies.isNotEmpty ? foundSpecies.first.name : 'Especie Desconocida';
+    return foundSpecies.isNotEmpty ? foundSpecies.first.name : l10n.unknownSpecies;
   }
 
   String _getFurPatternName(int? furPatternId) {
-    if (furPatternId == null) return 'Sin Patrón';
+    final l10n = AppLocalizations.of(context);
+    if (furPatternId == null) return l10n.noPattern;
     final pattern = widget.furPatterns.where((p) => p.id == furPatternId);
-    return pattern.isNotEmpty ? pattern.first.name : 'Patrón Desconocido';
+    return pattern.isNotEmpty ? pattern.first.name : l10n.unknownPattern;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DraggableScrollableSheet(
       initialChildSize: 0.8,
       minChildSize: 0.5,
@@ -158,8 +162,8 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
 
                         const SizedBox(height: 24),
 
-                        _buildDetailRow(context, icon: Icons.pets, label: 'Especie', value: _getSpeciesName(widget.cat.speciesId)),
-                        _buildDetailRow(context, icon: Icons.palette, label: 'Patrón de Pelaje', value: _getFurPatternName(widget.cat.furPatternId)),
+                        _buildDetailRow(context, icon: Icons.pets, label: l10n.speciesDetailLabel, value: _getSpeciesName(widget.cat.speciesId)),
+                        _buildDetailRow(context, icon: Icons.palette, label: l10n.furPatternDetailLabel, value: _getFurPatternName(widget.cat.furPatternId)),
 
                         if (widget.cat.hasLocation) ...[
                           Padding(
@@ -175,7 +179,7 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text('Ubicación', style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                                          Text(l10n.locationLabel, style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500)),
                                           const SizedBox(height: 4),
                                           Text(widget.cat.coordinatesString!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                                         ],
@@ -191,10 +195,10 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                         ],
 
                         if (widget.cat.dateMet != null)
-                          _buildDetailRow(context, icon: Icons.calendar_today, label: 'Fecha de Encuentro', value: AppHelpers.formatDate(widget.cat.dateMet)),
+                          _buildDetailRow(context, icon: Icons.calendar_today, label: l10n.dateMetDetailLabel, value: AppHelpers.formatDate(widget.cat.dateMet)),
 
                         if (widget.cat.picturePath != null)
-                          _buildDetailRow(context, icon: Icons.photo, label: 'Foto', value: widget.cat.picturePath!.split('/').last),
+                          _buildDetailRow(context, icon: Icons.photo, label: l10n.photoLabel, value: widget.cat.picturePath!.split('/').last),
 
                         const SizedBox(height: 32),
 
@@ -207,7 +211,7 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                                   widget.onEdit();
                                 },
                                 icon: const Icon(Icons.edit),
-                                label: const Text('Editar'),
+                                label: Text(l10n.edit),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context).colorScheme.primary,
                                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -223,7 +227,7 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                                   widget.onDelete();
                                 },
                                 icon: const Icon(Icons.delete, color: Colors.red),
-                                label: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                label: Text(l10n.delete, style: TextStyle(color: Colors.red)),
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(color: Colors.red),
                                   padding: const EdgeInsets.symmetric(vertical: 12),

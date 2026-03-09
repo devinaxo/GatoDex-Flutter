@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import 'dart:io';
 import '../services/cat_service.dart';
 import '../services/image_service.dart';
@@ -60,8 +61,9 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cargando datos: $e')),
+          SnackBar(content: Text(l10n.errorLoadingData(e.toString()))),
         );
       }
     }
@@ -70,7 +72,6 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   void _animatedMove(LatLng dest, double targetZoom) {
     final currentZoom = _mapController.camera.zoom;
     final currentCenter = _mapController.camera.center;
-    // Only zoom in if we're farther out than the target
     final finalZoom = currentZoom >= targetZoom ? currentZoom : targetZoom;
 
     final controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
@@ -142,6 +143,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: _isLoading
@@ -162,9 +164,9 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem(context, Icons.pets, 'Total', _allCats.length.toString()),
-                          _buildStatItem(context, Icons.location_on, 'Con Ubicación', _catsWithLocation.length.toString()),
-                          _buildStatItem(context, Icons.location_off, 'Sin Ubicación', (_allCats.length - _catsWithLocation.length).toString()),
+                          _buildStatItem(context, Icons.pets, l10n.total, _allCats.length.toString()),
+                          _buildStatItem(context, Icons.location_on, l10n.withLocation, _catsWithLocation.length.toString()),
+                          _buildStatItem(context, Icons.location_off, l10n.withoutLocation, (_allCats.length - _catsWithLocation.length).toString()),
                         ],
                       ),
                     ),
@@ -206,14 +208,14 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
               FloatingActionButton.small(
                 heroTag: 'center',
                 onPressed: _centerMapOnCats,
-                tooltip: 'Centrar ubicación de gatos',
+                tooltip: l10n.centerCatLocations,
                 child: const Icon(Icons.center_focus_strong),
               ),
             if (_catsWithLocation.isNotEmpty) const SizedBox(height: 8),
             FloatingActionButton.small(
               heroTag: 'refresh',
               onPressed: _loadData,
-              tooltip: 'Actualizar datos',
+              tooltip: l10n.refreshData,
               child: const Icon(Icons.refresh),
             ),
           ],
@@ -234,17 +236,18 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.location_off, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
-          Text('No hay gatos con ubicación', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey)),
+          Text(l10n.noCatsWithLocation, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey)),
           const SizedBox(height: 8),
-          Text('Agrega ubicaciones a tus gatos para verlos en el mapa', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey), textAlign: TextAlign.center),
+          Text(l10n.addLocationsHint, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey), textAlign: TextAlign.center),
           const SizedBox(height: 24),
-          FilledButton(onPressed: _navigateToAddCat, child: const Text('Agregar Gatos')),
+          FilledButton(onPressed: _navigateToAddCat, child: Text(l10n.addCats)),
         ],
       ),
     );
@@ -294,13 +297,14 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   }
 
   void _showDeleteDialog(Cat cat) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Gato'),
-        content: Text('¿Estás seguro de que quieres eliminar a ${cat.name}?'),
+        title: Text(l10n.deleteCat),
+        content: Text(l10n.deleteCatConfirm(cat.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () async {
               await _imageService.deleteImage(cat.picturePath);
@@ -308,10 +312,10 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
               Navigator.pop(context);
               _loadData();
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${cat.name} eliminado')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.catDeleted(cat.name))));
               }
             },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.delete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

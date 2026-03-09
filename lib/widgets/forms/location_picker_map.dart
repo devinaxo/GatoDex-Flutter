@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../utils/map_tile_helper.dart';
 
 class LocationPickerMap extends StatefulWidget {
@@ -51,19 +52,19 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _showLocationError('Permisos de ubicación denegados');
+          _showLocationError(AppLocalizations.of(context).locationPermissionDenied);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showLocationError('Los permisos de ubicación están permanentemente denegados. Por favor, habilítalos en la gatoConfiguración.');
+        _showLocationError(AppLocalizations.of(context).locationPermissionPermanentlyDenied);
         return;
       }
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _showLocationError('Los servicios de ubicación están deshabilitados. Por favor, habilítalos.');
+        _showLocationError(AppLocalizations.of(context).locationServicesDisabled);
         return;
       }
 
@@ -76,11 +77,11 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Ubicación actual establecida'), backgroundColor: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2)),
+          SnackBar(content: Text(AppLocalizations.of(context).currentLocationSet), backgroundColor: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2)),
         );
       }
     } catch (e) {
-      _showLocationError('Error al obtener la ubicación: ${e.toString()}');
+      _showLocationError(AppLocalizations.of(context).errorGettingLocation(e.toString()));
     } finally {
       setState(() => _isLoadingLocation = false);
     }
@@ -98,6 +99,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   Widget build(BuildContext context) {
     final center = selectedLocation ?? LatLng(40.7128, -74.0060);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -119,21 +121,21 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 Icon(Icons.info_outline, size: 16, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Toca en el mapa para seleccionar ubicación', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                  child: Text(l10n.tapMapToSelectLocation, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
                 ),
                 IconButton(
                   onPressed: _isLoadingLocation ? null : _getCurrentLocation,
                   icon: _isLoadingLocation
                       ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary))
                       : const Icon(Icons.my_location, size: 18),
-                  tooltip: 'Usar mi ubicación actual',
+                  tooltip: l10n.useMyCurrentLocation,
                   style: IconButton.styleFrom(padding: const EdgeInsets.all(8), minimumSize: const Size(32, 32), foregroundColor: colorScheme.primary),
                 ),
                 if (selectedLocation != null)
                   TextButton.icon(
                     onPressed: _clearLocation,
                     icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Limpiar'),
+                    label: Text(l10n.clear),
                     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8), minimumSize: const Size(0, 32), foregroundColor: colorScheme.primary),
                   ),
               ],

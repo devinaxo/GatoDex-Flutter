@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../services/cat_service.dart';
 import '../services/image_service.dart';
 import '../models/cat.dart';
@@ -131,7 +132,8 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error cargando datos: $e')));
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorLoadingData(e.toString()))));
       }
     }
   }
@@ -167,7 +169,8 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       setState(() => _isRefreshing = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error actualizando datos: $e')));
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorRefreshingData(e.toString()))));
       }
     }
   }
@@ -233,7 +236,8 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       setState(() => _isLoadingMore = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error cargando página: $e')));
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorLoadingPage(e.toString()))));
       }
     }
   }
@@ -279,6 +283,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -299,7 +304,7 @@ class _HomePageState extends State<HomePage> {
                               child: TextField(
                                 controller: _searchController,
                                 decoration: InputDecoration(
-                                  hintText: 'Buscar por nombre...',
+                                  hintText: l10n.searchByName,
                                   prefixIcon: const Icon(Icons.search, size: 20),
                                   suffixIcon: _searchController.text.isNotEmpty
                                       ? IconButton(
@@ -327,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                               isLabelVisible: _hasActiveFilters,
                               child: IconButton(
                                 icon: Icon(_showFilters ? Icons.filter_list_off : Icons.filter_list),
-                                tooltip: 'Filtros',
+                                tooltip: l10n.filters,
                                 onPressed: () => setState(() => _showFilters = !_showFilters),
                               ),
                             ),
@@ -362,7 +367,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             if (!_isLoading && _totalCats > 0)
                               Text(
-                                '${_hasActiveFilters ? "Filtrado: " : ""}$_totalCats gatos • Página $_currentPage de $_totalPages',
+                                '${_hasActiveFilters ? l10n.filteredPrefix : ""}${l10n.catsStats(_totalCats, _currentPage, _totalPages)}',
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                               ),
                           ],
@@ -377,7 +382,7 @@ class _HomePageState extends State<HomePage> {
                               child: IconButton(
                                 key: ValueKey(_isMosaicView ? 'list_icon' : 'grid_icon'),
                                 icon: Icon(_isMosaicView ? Icons.list : Icons.grid_view),
-                                tooltip: _isMosaicView ? 'Vista Lista' : 'Vista Mosaico',
+                                tooltip: _isMosaicView ? l10n.listView : l10n.mosaicView,
                                 onPressed: () {
                                   setState(() => _isMosaicView = !_isMosaicView);
                                   _saveViewPreference();
@@ -392,7 +397,7 @@ class _HomePageState extends State<HomePage> {
                                       child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(colorScheme.primary)),
                                     )
                                   : const Icon(Icons.refresh),
-                              tooltip: 'Actualizar',
+                              tooltip: l10n.refresh,
                               onPressed: _isRefreshing ? null : _refreshData,
                             ),
                           ],
@@ -427,6 +432,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFilterSection(ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Column(
@@ -438,7 +444,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               // Species filter
               DropdownMenu<int?>(
-                label: const Text('Especie'),
+                label: Text(l10n.species),
                 width: 200,
                 initialSelection: _filterSpeciesId,
                 textStyle: const TextStyle(fontSize: 13),
@@ -450,7 +456,7 @@ class _HomePageState extends State<HomePage> {
                   fillColor: colorScheme.surfaceContainerHighest,
                 ),
                 dropdownMenuEntries: [
-                  const DropdownMenuEntry(value: null, label: 'Todas'),
+                  DropdownMenuEntry(value: null, label: l10n.allSpecies),
                   ..._species.map((s) => DropdownMenuEntry(value: s.id, label: s.name)),
                 ],
                 onSelected: (value) {
@@ -460,7 +466,7 @@ class _HomePageState extends State<HomePage> {
               ),
               // Fur pattern filter
               DropdownMenu<int?>(
-                label: const Text('Patrón'),
+                label: Text(l10n.furPattern),
                 width: 200,
                 initialSelection: _filterFurPatternId,
                 textStyle: const TextStyle(fontSize: 13),
@@ -472,7 +478,7 @@ class _HomePageState extends State<HomePage> {
                   fillColor: colorScheme.surfaceContainerHighest,
                 ),
                 dropdownMenuEntries: [
-                  const DropdownMenuEntry(value: null, label: 'Todos'),
+                  DropdownMenuEntry(value: null, label: l10n.allPatterns),
                   ..._furPatterns.map((fp) => DropdownMenuEntry(value: fp.id, label: fp.name)),
                 ],
                 onSelected: (value) {
@@ -490,7 +496,7 @@ class _HomePageState extends State<HomePage> {
                 label: Text(
                   _filterDateFrom != null && _filterDateTo != null
                       ? '${AppHelpers.formatDate(_filterDateFrom)} - ${AppHelpers.formatDate(_filterDateTo)}'
-                      : 'Rango de fechas',
+                      : l10n.dateRange,
                 ),
                 onPressed: _selectDateRange,
               ),
@@ -515,7 +521,7 @@ class _HomePageState extends State<HomePage> {
                 TextButton.icon(
                   onPressed: _clearAllFilters,
                   icon: const Icon(Icons.clear_all, size: 16),
-                  label: const Text('Limpiar'),
+                  label: Text(l10n.clearFilters),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     visualDensity: VisualDensity.compact,
@@ -529,13 +535,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showDeleteDialog(Cat cat) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Gato'),
-        content: Text('¿Estás seguro de que quieres eliminar a ${cat.name}?'),
+        title: Text(l10n.deleteCat),
+        content: Text(l10n.deleteCatConfirm(cat.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () async {
               await _imageService.deleteImage(cat.picturePath);
@@ -543,10 +550,10 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(context);
               _clearPreloadedPagesAndReload();
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${cat.name} eliminado')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.catDeleted(cat.name))));
               }
             },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.delete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final String? imagePath;
@@ -92,6 +93,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
   @override
   Widget build(BuildContext context) {
     final imageProvider = _getImageProvider();
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -185,7 +187,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Doble toque o pellizque para acercar • Toca fuera para cerrar',
+                            l10n.doubleTapOrPinchToZoom,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 12,
@@ -212,7 +214,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer>
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Doble toque para alejar',
+                            l10n.doubleTapToZoomOut,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,

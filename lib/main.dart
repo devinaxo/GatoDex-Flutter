@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'screens/main_wrapper.dart';
 import 'screens/backup_screen.dart';
 import 'services/theme_service.dart';
+import 'services/locale_service.dart';
 import 'database/database_helper.dart';
 import 'utils/constants.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   ThemeService().init();
+  LocaleService().init();
   DatabaseHelper().database; // Pre-warm database
   runApp(const MyApp());
 }
@@ -55,9 +58,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeService = ThemeService();
+    final localeService = LocaleService();
 
     return ListenableBuilder(
-      listenable: themeService,
+      listenable: Listenable.merge([themeService, localeService]),
       builder: (context, _) {
         if (themeService.useDynamicColor) {
           return DynamicColorBuilder(
@@ -99,20 +103,20 @@ class MyApp extends StatelessWidget {
     required ThemeData darkTheme,
     required ThemeMode themeMode,
   }) {
+    final localeService = LocaleService();
     return MaterialApp(
       title: AppConstants.appName,
       theme: theme,
       darkTheme: darkTheme,
       themeMode: themeMode,
+      locale: localeService.locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en', ''),
-        Locale('es', ''),
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const MainWrapper(),
       routes: {
         '/backup': (context) => const BackupScreen(),

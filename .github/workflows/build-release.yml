@@ -29,6 +29,18 @@ jobs:
           flutter-version: '3.32.8'
           channel: 'stable'
 
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > gatodex-release.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=../../gatodex-release.jks
+          EOF
+
       - name: Install dependencies
         run: flutter pub get
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
 import '../../utils/helpers.dart';
 
@@ -24,7 +25,7 @@ class CatMosaicItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -34,7 +35,6 @@ class CatMosaicItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image takes most of the card
             Expanded(
               flex: 5,
               child: Stack(
@@ -42,66 +42,42 @@ class CatMosaicItem extends StatelessWidget {
                 children: [
                   cat.picturePath != null
                       ? cat.picturePath!.startsWith('assets/')
-                          ? Image.asset(cat.picturePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholderImage(context))
-                          : Image.file(File(cat.picturePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholderImage(context))
-                      : _buildPlaceholderImage(context),
-                  // Menu button overlay
+                          ? Image.asset(cat.picturePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
+                          : Image.file(File(cat.picturePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
+                      : _buildPlaceholder(context),
                   Positioned(
-                    top: 4,
-                    right: 4,
+                    top: 4, right: 4,
                     child: SizedBox(
-                      width: 28,
-                      height: 28,
+                      width: 28, height: 28,
                       child: PopupMenuButton(
                         padding: EdgeInsets.zero,
                         icon: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black38,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                          decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(14)),
                           child: const Icon(Icons.more_vert, size: 16, color: Colors.white),
                         ),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Editar')])),
-                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red, size: 16), SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: Colors.red))])),
+                        itemBuilder: (_) => [
+                          PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text(l10n.edit)])),
+                          PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red, size: 16), SizedBox(width: 8), Text(l10n.delete, style: TextStyle(color: Colors.red))])),
                         ],
-                        onSelected: (value) {
-                          if (value == 'edit') onEdit();
-                          if (value == 'delete') onDelete();
-                        },
+                        onSelected: (v) { if (v == 'edit') onEdit(); if (v == 'delete') onDelete(); },
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            // Compact info section
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    cat.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  Text(
-                    speciesName,
-                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(speciesName, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
                   if (cat.dateMet != null) ...[
                     const SizedBox(height: 1),
-                    Text(
-                      AppHelpers.formatDate(cat.dateMet),
-                      style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-                      maxLines: 1,
-                    ),
+                    Text(AppHelpers.formatDate(cat.dateMet), style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)), maxLines: 1),
                   ],
                 ],
               ),
@@ -112,7 +88,7 @@ class CatMosaicItem extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderImage(BuildContext context) {
+  Widget _buildPlaceholder(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: Center(child: Image.asset('assets/images/palico-neutral.png', width: 48, height: 48)),

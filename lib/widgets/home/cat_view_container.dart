@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
 import '../../models/species.dart';
 import '../../models/fur_pattern.dart';
@@ -8,7 +9,7 @@ import 'cat_list_item.dart';
 import 'cat_mosaic_item.dart';
 
 class CatViewContainer extends StatefulWidget {
-  final Map<int, List<Cat>> preloadedPages; // Changed from single cats list to preloaded pages map
+  final Map<int, List<Cat>> preloadedPages;
   final List<Species> species;
   final List<FurPattern> furPatterns;
   final bool isMosaicView;
@@ -111,18 +112,21 @@ class _CatViewContainerState extends State<CatViewContainer>
   }
 
   String _getSpeciesName(int speciesId) {
+    final l10n = AppLocalizations.of(context);
     final foundSpecies = widget.species.where((s) => s.id == speciesId);
-    return foundSpecies.isNotEmpty ? foundSpecies.first.name : 'Especie Desconocida';
+    return foundSpecies.isNotEmpty ? foundSpecies.first.name : l10n.unknownSpecies;
   }
 
   String _getFurPatternName(int? furPatternId) {
-    if (furPatternId == null) return 'Sin Patrón';
+    final l10n = AppLocalizations.of(context);
+    if (furPatternId == null) return l10n.noPattern;
     final pattern = widget.furPatterns.where((p) => p.id == furPatternId);
-    return pattern.isNotEmpty ? pattern.first.name : 'Patrón Desconocido';
+    return pattern.isNotEmpty ? pattern.first.name : l10n.unknownPattern;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasAnyCats = widget.preloadedPages.values.any((cats) => cats.isNotEmpty);
     
     if (!hasAnyCats) {
@@ -133,11 +137,11 @@ class _CatViewContainerState extends State<CatViewContainer>
             Image.asset('assets/images/palico-failure.png', width: 80, height: 80),
             SizedBox(height: 16),
             Text(
-              'No hay gatos registrados',
+              l10n.noCatsRegistered,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             SizedBox(height: 8),
-            Text('¡Agrega tu primer gato!'),
+            Text(l10n.addYourFirstCat),
           ],
         ),
       );
@@ -149,7 +153,7 @@ class _CatViewContainerState extends State<CatViewContainer>
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (pageIndex) {
-              final newPage = pageIndex + 1; // Convert back to 1-based indexing
+              final newPage = pageIndex + 1;
               if (newPage != widget.currentPage && !_isPageChanging) {
                 _triggerHapticFeedback();
                 widget.onPageChanged(newPage);
@@ -157,7 +161,7 @@ class _CatViewContainerState extends State<CatViewContainer>
             },
             itemCount: widget.totalPages,
             itemBuilder: (context, pageIndex) {
-              final pageNumber = pageIndex + 1; // Convert to 1-based indexing
+              final pageNumber = pageIndex + 1;
               final cats = widget.preloadedPages[pageNumber] ?? [];
               
               if (cats.isEmpty) {
@@ -176,13 +180,14 @@ class _CatViewContainerState extends State<CatViewContainer>
   }
 
   Widget _buildLoadingPage(BuildContext context, int pageNumber) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Cargando página $pageNumber...'),
+          Text(l10n.loadingPage(pageNumber)),
         ],
       ),
     );
@@ -237,16 +242,13 @@ class _CatViewContainerState extends State<CatViewContainer>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Previous page button
           IconButton(
             onPressed: widget.currentPage > 1 ? () => _handlePageChange(widget.currentPage - 1) : null,
             icon: const Icon(Icons.chevron_left),
           ),
           
-          // Smart pagination with ellipsis
           ..._buildPaginationItems(context),
           
-          // Next page button
           IconButton(
             onPressed: widget.currentPage < widget.totalPages ? () => _handlePageChange(widget.currentPage + 1) : null,
             icon: const Icon(Icons.chevron_right),
@@ -259,31 +261,24 @@ class _CatViewContainerState extends State<CatViewContainer>
   List<Widget> _buildPaginationItems(BuildContext context) {
     List<Widget> items = [];
     
-    // If there are 5 or fewer pages, show all pages
     if (widget.totalPages <= 5) {
       for (int i = 1; i <= widget.totalPages; i++) {
         items.add(_buildPageButton(context, i));
       }
     } else {
-      // Show smart pagination with ellipsis
-      // Always show page 1
       items.add(_buildPageButton(context, 1));
       
-      // Determine what to show in the middle
       if (widget.currentPage <= 3) {
-        // Current page is near the beginning: 1 2 3 [...] last
         items.add(_buildPageButton(context, 2));
         items.add(_buildPageButton(context, 3));
         items.add(_buildEllipsisButton(context));
         items.add(_buildPageButton(context, widget.totalPages));
       } else if (widget.currentPage >= widget.totalPages - 2) {
-        // Current page is near the end: 1 [...] n-2 n-1 n
         items.add(_buildEllipsisButton(context));
         items.add(_buildPageButton(context, widget.totalPages - 2));
         items.add(_buildPageButton(context, widget.totalPages - 1));
         items.add(_buildPageButton(context, widget.totalPages));
       } else {
-        // Current page is in the middle: 1 [...] current [...] last
         items.add(_buildEllipsisButton(context));
         items.add(_buildPageButton(context, widget.currentPage));
         items.add(_buildEllipsisButton(context));
@@ -350,25 +345,26 @@ class _CatViewContainerState extends State<CatViewContainer>
 
   void _showPageJumpDialog() {
     final TextEditingController dialogController = TextEditingController();
+    final l10n = AppLocalizations.of(context);
     
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Ir a página'),
+          title: Text(l10n.goToPage),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Introduce un número de página (1-${widget.totalPages}):'),
+              Text(l10n.enterPageNumber(widget.totalPages)),
               const SizedBox(height: 16),
               TextField(
                 controller: dialogController,
                 keyboardType: TextInputType.number,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: 'Número de página',
+                  labelText: l10n.pageNumber,
                   border: const OutlineInputBorder(),
-                  hintText: 'Ej: ${widget.totalPages ~/ 2}',
+                  hintText: l10n.pageExample(widget.totalPages ~/ 2),
                 ),
                 onSubmitted: (value) {
                   _jumpToPageFromDialog(dialogController.text);
@@ -380,14 +376,14 @@ class _CatViewContainerState extends State<CatViewContainer>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 _jumpToPageFromDialog(dialogController.text);
                 Navigator.of(context).pop();
               },
-              child: const Text('Ir'),
+              child: Text(l10n.go),
             ),
           ],
         );
@@ -400,9 +396,10 @@ class _CatViewContainerState extends State<CatViewContainer>
     
     final page = int.tryParse(pageText);
     if (page == null || page < 1 || page > widget.totalPages) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Por favor introduce un número válido entre 1 y ${widget.totalPages}'),
+          content: Text(l10n.invalidPageNumber(widget.totalPages)),
           backgroundColor: Colors.red,
         ),
       );
