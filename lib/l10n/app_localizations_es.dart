@@ -12,7 +12,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appName => 'Gatodex';
 
   @override
-  String get appTagline => 'Tu colección de gatos';
+  String get appTagline => 'Tu colección de кошки';
 
   @override
   String get gatoDex => 'gatoDex';
@@ -65,19 +65,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get languageSpanish => 'Español';
 
   @override
-  String get searchByName => 'Buscar por nombre...';
+  String get searchByName => 'Buscar por nombre o alias...';
 
   @override
   String get filters => 'Filtros';
 
   @override
-  String get species => 'Especie';
+  String get breed => 'Raza';
 
   @override
   String get furPattern => 'Patrón';
 
   @override
-  String get allSpecies => 'Todas';
+  String get allBreeds => 'Todas';
 
   @override
   String get allPatterns => 'Todos';
@@ -196,10 +196,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get speciesLabel => 'Especie';
+  String get breedLabel => 'Raza';
 
   @override
-  String get pleaseSelectSpecies => 'Por favor selecciona una especie';
+  String get pleaseSelectBreed => 'Por favor selecciona una raza';
 
   @override
   String get furPatternLabel => 'Patrón de Pelaje (Opcional)';
@@ -237,10 +237,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get permissionDenied => 'Permiso denegado';
 
   @override
+  String get photosLabel => 'Fotos';
+
+  @override
+  String photosCount(int count) {
+    return '$count/5 fotos';
+  }
+
+  @override
+  String get maxPhotosReached => 'Máximo de 5 fotos alcanzado';
+
+  @override
+  String get aliasesLabel => 'Alias (Opcional)';
+
+  @override
+  String get aliasHint => 'Nombre del alias';
+
+  @override
+  String get addAlias => 'Agregar alias';
+
+  @override
+  String get aliasEmpty => 'Por favor ingresa un alias';
+
+  @override
   String get saving => 'Guardando...';
 
   @override
-  String get unknownSpecies => 'Especie Desconocida';
+  String get unknownBreed => 'Raza Desconocida';
 
   @override
   String get unknownPattern => 'Patrón Desconocido';
@@ -252,7 +275,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noLocation => 'Sin Ubicación';
 
   @override
-  String get speciesDetailLabel => 'Especie';
+  String get breedDetailLabel => 'Raza';
 
   @override
   String get furPatternDetailLabel => 'Patrón de Pelaje';
@@ -265,6 +288,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get photoLabel => 'Foto';
+
+  @override
+  String get aliasesDetailLabel => 'Alias';
 
   @override
   String get tapMapToSelectLocation =>
@@ -344,10 +370,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appDescription =>
-      'Una aplicación para catalogar y gestionar información sobre gatos que te encuentres.';
+      'Una aplicación y mi proyecto de pasión personal para catalogar y gestionar información sobre gatos que te encuentres, sean de la calle o no. Inspirada por mi necesidad de hacer exactamente eso en mi vida diaria.';
 
   @override
-  String get developedWithFlutter => 'Desarrollado con Flutter';
+  String get developedWithFlutter => 'Desarrollado con Flutter y mucho amor';
 
   @override
   String get testingAdvanced => 'Testing (Avanzado!)';
@@ -399,8 +425,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get noSpeciesAvailable =>
-      'No hay especies disponibles. Necesitas al menos una especie para crear gatos de prueba.';
+  String get noBreedsAvailable =>
+      'No hay razas disponibles. Necesitas al menos una raza para crear gatos de prueba.';
 
   @override
   String get dangerTitle => '¡Peligro!';
@@ -662,4 +688,70 @@ class AppLocalizationsEs extends AppLocalizations {
   String errorLoadingPage(String error) {
     return 'Error cargando página: $error';
   }
+
+  @override
+  String get breedDomesticShorthair => 'Pelo Corto Doméstico';
+
+  @override
+  String get breedDomesticLonghair => 'Pelo Largo Doméstico';
+
+  @override
+  String get breedPersian => 'Persa';
+
+  @override
+  String get breedMaineCoon => 'Maine Coon';
+
+  @override
+  String get breedSiamese => 'Siamés';
+
+  @override
+  String get breedBritishShorthair => 'Británico de Pelo Corto';
+
+  @override
+  String get breedRussianBlue => 'Azul Ruso';
+
+  @override
+  String get breedRagdoll => 'Ragdoll';
+
+  @override
+  String get breedBengal => 'Bengalí';
+
+  @override
+  String get breedScottishFold => 'Scottish Fold';
+
+  @override
+  String get furPatternSolid => 'Sólido';
+
+  @override
+  String get furPatternTabby => 'Atigrado';
+
+  @override
+  String get furPatternCalico => 'Carey';
+
+  @override
+  String get furPatternTortoiseshell => 'Tortuga';
+
+  @override
+  String get furPatternBicolor => 'Bicolor';
+
+  @override
+  String get furPatternTricolor => 'Tricolor';
+
+  @override
+  String get furPatternSpotted => 'Manchado';
+
+  @override
+  String get furPatternPointed => 'Punteado';
+
+  @override
+  String get furPatternColorpoint => 'Colorpoint';
+
+  @override
+  String get furPatternSmoke => 'Humo';
+
+  @override
+  String get furPatternShaded => 'Sombreado';
+
+  @override
+  String get furPatternChinchilla => 'Chinchilla';
 }

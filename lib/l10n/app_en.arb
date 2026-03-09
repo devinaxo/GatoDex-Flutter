@@ -2,7 +2,7 @@
   "@@locale": "en",
 
   "appName": "Gatodex",
-  "appTagline": "Your cat collection",
+  "appTagline": "Your personal кот collection",
 
   "gatoDex": "gatoDex",
   "gatoMapa": "gatoMapa",
@@ -25,11 +25,11 @@
   "languageEnglish": "English",
   "languageSpanish": "Español",
 
-  "searchByName": "Search by name...",
+  "searchByName": "Search by name or alias...",
   "filters": "Filters",
-  "species": "Species",
+  "breed": "Breed",
   "furPattern": "Pattern",
-  "allSpecies": "All",
+  "allBreeds": "All",
   "allPatterns": "All",
   "dateRange": "Date range",
   "clearFilters": "Clear",
@@ -80,8 +80,8 @@
   "errorGeneratingName": "Error generating name: {error}",
   "@errorGeneratingName": { "placeholders": { "error": { "type": "String" } } },
 
-  "speciesLabel": "Species",
-  "pleaseSelectSpecies": "Please select a species",
+  "breedLabel": "Breed",
+  "pleaseSelectBreed": "Please select a breed",
   "furPatternLabel": "Fur Pattern (Optional)",
   "noPattern": "No Pattern",
   "dateMetLabel": "Date Met (Optional)",
@@ -95,19 +95,29 @@
   "chooseFromGallery": "Choose from gallery",
   "deletePhoto": "Delete photo",
   "permissionDenied": "Permission denied",
+  "photosLabel": "Photos",
+  "photosCount": "{count}/5 photos",
+  "@photosCount": { "placeholders": { "count": { "type": "int" } } },
+  "maxPhotosReached": "Maximum of 5 photos reached",
+
+  "aliasesLabel": "Aliases (Optional)",
+  "aliasHint": "Alias name",
+  "addAlias": "Add alias",
+  "aliasEmpty": "Please enter an alias",
 
   "saving": "Saving...",
 
-  "unknownSpecies": "Unknown Species",
+  "unknownBreed": "Unknown Breed",
   "unknownPattern": "Unknown Pattern",
   "unknownDate": "Unknown Date",
   "noLocation": "No Location",
 
-  "speciesDetailLabel": "Species",
+  "breedDetailLabel": "Breed",
   "furPatternDetailLabel": "Fur Pattern",
   "locationLabel": "Location",
   "dateMetDetailLabel": "Date Met",
   "photoLabel": "Photo",
+  "aliasesDetailLabel": "A.K.A",
 
   "tapMapToSelectLocation": "Tap on the map to select location",
   "useMyCurrentLocation": "Use my current location",
@@ -136,8 +146,8 @@
   "manageBackups": "Manage backups",
   "about": "About",
   "appInfo": "App information",
-  "appDescription": "An app to catalog and manage information about cats you encounter.",
-  "developedWithFlutter": "Developed with Flutter",
+  "appDescription": "An app and personal passion project to catalog and manage information about cats you encounter, be it strays or your own. Inspired by my need to do exactly that.",
+  "developedWithFlutter": "Developed with Flutter and lots of love",
 
   "testingAdvanced": "Testing (Advanced!)",
   "advancedWarning": "These options are mainly for developers. If you don't know what you're doing, you probably shouldn't touch this.",
@@ -156,7 +166,7 @@
   "@testCatsAddedSuccess": { "placeholders": { "names": { "type": "String" } } },
   "errorAddingTestCats": "Error adding test cats: {error}",
   "@errorAddingTestCats": { "placeholders": { "error": { "type": "String" } } },
-  "noSpeciesAvailable": "No species available. You need at least one species to create test cats.",
+  "noBreedsAvailable": "No breeds available. You need at least one breed to create test cats.",
 
   "dangerTitle": "Danger!",
   "deleteAllCatsConfirm": "Are you COMPLETELY SURE you want to delete ALL cats?\n\n⚠️ This action CANNOT be undone.\n⚠️ ALL cat data will be lost.\n⚠️ Photos will also be deleted.\n\nOnly proceed if you know exactly what you're doing.",
@@ -258,5 +268,29 @@
   "errorRefreshingData": "Error refreshing data: {error}",
   "@errorRefreshingData": { "placeholders": { "error": { "type": "String" } } },
   "errorLoadingPage": "Error loading page: {error}",
-  "@errorLoadingPage": { "placeholders": { "error": { "type": "String" } } }
+  "@errorLoadingPage": { "placeholders": { "error": { "type": "String" } } },
+
+  "breedDomesticShorthair": "Domestic Shorthair",
+  "breedDomesticLonghair": "Domestic Longhair",
+  "breedPersian": "Persian",
+  "breedMaineCoon": "Maine Coon",
+  "breedSiamese": "Siamese",
+  "breedBritishShorthair": "British Shorthair",
+  "breedRussianBlue": "Russian Blue",
+  "breedRagdoll": "Ragdoll",
+  "breedBengal": "Bengal",
+  "breedScottishFold": "Scottish Fold",
+
+  "furPatternSolid": "Solid",
+  "furPatternTabby": "Tabby",
+  "furPatternCalico": "Calico",
+  "furPatternTortoiseshell": "Tortoiseshell",
+  "furPatternBicolor": "Bicolor",
+  "furPatternTricolor": "Tricolor",
+  "furPatternSpotted": "Spotted",
+  "furPatternPointed": "Pointed",
+  "furPatternColorpoint": "Colorpoint",
+  "furPatternSmoke": "Smoke",
+  "furPatternShaded": "Shaded",
+  "furPatternChinchilla": "Chinchilla"
 }

@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTagline.
   ///
   /// In en, this message translates to:
-  /// **'Your cat collection'**
+  /// **'Your personal кот collection'**
   String get appTagline;
 
   /// No description provided for @gatoDex.
@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchByName.
   ///
   /// In en, this message translates to:
-  /// **'Search by name...'**
+  /// **'Search by name or alias...'**
   String get searchByName;
 
   /// No description provided for @filters.
@@ -218,11 +218,11 @@ abstract class AppLocalizations {
   /// **'Filters'**
   String get filters;
 
-  /// No description provided for @species.
+  /// No description provided for @breed.
   ///
   /// In en, this message translates to:
-  /// **'Species'**
-  String get species;
+  /// **'Breed'**
+  String get breed;
 
   /// No description provided for @furPattern.
   ///
@@ -230,11 +230,11 @@ abstract class AppLocalizations {
   /// **'Pattern'**
   String get furPattern;
 
-  /// No description provided for @allSpecies.
+  /// No description provided for @allBreeds.
   ///
   /// In en, this message translates to:
   /// **'All'**
-  String get allSpecies;
+  String get allBreeds;
 
   /// No description provided for @allPatterns.
   ///
@@ -428,17 +428,17 @@ abstract class AppLocalizations {
   /// **'Error generating name: {error}'**
   String errorGeneratingName(String error);
 
-  /// No description provided for @speciesLabel.
+  /// No description provided for @breedLabel.
   ///
   /// In en, this message translates to:
-  /// **'Species'**
-  String get speciesLabel;
+  /// **'Breed'**
+  String get breedLabel;
 
-  /// No description provided for @pleaseSelectSpecies.
+  /// No description provided for @pleaseSelectBreed.
   ///
   /// In en, this message translates to:
-  /// **'Please select a species'**
-  String get pleaseSelectSpecies;
+  /// **'Please select a breed'**
+  String get pleaseSelectBreed;
 
   /// No description provided for @furPatternLabel.
   ///
@@ -506,17 +506,59 @@ abstract class AppLocalizations {
   /// **'Permission denied'**
   String get permissionDenied;
 
+  /// No description provided for @photosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get photosLabel;
+
+  /// No description provided for @photosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/5 photos'**
+  String photosCount(int count);
+
+  /// No description provided for @maxPhotosReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum of 5 photos reached'**
+  String get maxPhotosReached;
+
+  /// No description provided for @aliasesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aliases (Optional)'**
+  String get aliasesLabel;
+
+  /// No description provided for @aliasHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Alias name'**
+  String get aliasHint;
+
+  /// No description provided for @addAlias.
+  ///
+  /// In en, this message translates to:
+  /// **'Add alias'**
+  String get addAlias;
+
+  /// No description provided for @aliasEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an alias'**
+  String get aliasEmpty;
+
   /// No description provided for @saving.
   ///
   /// In en, this message translates to:
   /// **'Saving...'**
   String get saving;
 
-  /// No description provided for @unknownSpecies.
+  /// No description provided for @unknownBreed.
   ///
   /// In en, this message translates to:
-  /// **'Unknown Species'**
-  String get unknownSpecies;
+  /// **'Unknown Breed'**
+  String get unknownBreed;
 
   /// No description provided for @unknownPattern.
   ///
@@ -536,11 +578,11 @@ abstract class AppLocalizations {
   /// **'No Location'**
   String get noLocation;
 
-  /// No description provided for @speciesDetailLabel.
+  /// No description provided for @breedDetailLabel.
   ///
   /// In en, this message translates to:
-  /// **'Species'**
-  String get speciesDetailLabel;
+  /// **'Breed'**
+  String get breedDetailLabel;
 
   /// No description provided for @furPatternDetailLabel.
   ///
@@ -565,6 +607,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo'**
   String get photoLabel;
+
+  /// No description provided for @aliasesDetailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'A.K.A'**
+  String get aliasesDetailLabel;
 
   /// No description provided for @tapMapToSelectLocation.
   ///
@@ -707,13 +755,13 @@ abstract class AppLocalizations {
   /// No description provided for @appDescription.
   ///
   /// In en, this message translates to:
-  /// **'An app to catalog and manage information about cats you encounter.'**
+  /// **'An app and personal passion project to catalog and manage information about cats you encounter, be it strays or your own. Inspired by my need to do exactly that.'**
   String get appDescription;
 
   /// No description provided for @developedWithFlutter.
   ///
   /// In en, this message translates to:
-  /// **'Developed with Flutter'**
+  /// **'Developed with Flutter and lots of love'**
   String get developedWithFlutter;
 
   /// No description provided for @testingAdvanced.
@@ -800,11 +848,11 @@ abstract class AppLocalizations {
   /// **'Error adding test cats: {error}'**
   String errorAddingTestCats(String error);
 
-  /// No description provided for @noSpeciesAvailable.
+  /// No description provided for @noBreedsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No species available. You need at least one species to create test cats.'**
-  String get noSpeciesAvailable;
+  /// **'No breeds available. You need at least one breed to create test cats.'**
+  String get noBreedsAvailable;
 
   /// No description provided for @dangerTitle.
   ///
@@ -1231,6 +1279,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading page: {error}'**
   String errorLoadingPage(String error);
+
+  /// No description provided for @breedDomesticShorthair.
+  ///
+  /// In en, this message translates to:
+  /// **'Domestic Shorthair'**
+  String get breedDomesticShorthair;
+
+  /// No description provided for @breedDomesticLonghair.
+  ///
+  /// In en, this message translates to:
+  /// **'Domestic Longhair'**
+  String get breedDomesticLonghair;
+
+  /// No description provided for @breedPersian.
+  ///
+  /// In en, this message translates to:
+  /// **'Persian'**
+  String get breedPersian;
+
+  /// No description provided for @breedMaineCoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Maine Coon'**
+  String get breedMaineCoon;
+
+  /// No description provided for @breedSiamese.
+  ///
+  /// In en, this message translates to:
+  /// **'Siamese'**
+  String get breedSiamese;
+
+  /// No description provided for @breedBritishShorthair.
+  ///
+  /// In en, this message translates to:
+  /// **'British Shorthair'**
+  String get breedBritishShorthair;
+
+  /// No description provided for @breedRussianBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Russian Blue'**
+  String get breedRussianBlue;
+
+  /// No description provided for @breedRagdoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Ragdoll'**
+  String get breedRagdoll;
+
+  /// No description provided for @breedBengal.
+  ///
+  /// In en, this message translates to:
+  /// **'Bengal'**
+  String get breedBengal;
+
+  /// No description provided for @breedScottishFold.
+  ///
+  /// In en, this message translates to:
+  /// **'Scottish Fold'**
+  String get breedScottishFold;
+
+  /// No description provided for @furPatternSolid.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid'**
+  String get furPatternSolid;
+
+  /// No description provided for @furPatternTabby.
+  ///
+  /// In en, this message translates to:
+  /// **'Tabby'**
+  String get furPatternTabby;
+
+  /// No description provided for @furPatternCalico.
+  ///
+  /// In en, this message translates to:
+  /// **'Calico'**
+  String get furPatternCalico;
+
+  /// No description provided for @furPatternTortoiseshell.
+  ///
+  /// In en, this message translates to:
+  /// **'Tortoiseshell'**
+  String get furPatternTortoiseshell;
+
+  /// No description provided for @furPatternBicolor.
+  ///
+  /// In en, this message translates to:
+  /// **'Bicolor'**
+  String get furPatternBicolor;
+
+  /// No description provided for @furPatternTricolor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricolor'**
+  String get furPatternTricolor;
+
+  /// No description provided for @furPatternSpotted.
+  ///
+  /// In en, this message translates to:
+  /// **'Spotted'**
+  String get furPatternSpotted;
+
+  /// No description provided for @furPatternPointed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pointed'**
+  String get furPatternPointed;
+
+  /// No description provided for @furPatternColorpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Colorpoint'**
+  String get furPatternColorpoint;
+
+  /// No description provided for @furPatternSmoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoke'**
+  String get furPatternSmoke;
+
+  /// No description provided for @furPatternShaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Shaded'**
+  String get furPatternShaded;
+
+  /// No description provided for @furPatternChinchilla.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinchilla'**
+  String get furPatternChinchilla;
 }
 
 class _AppLocalizationsDelegate

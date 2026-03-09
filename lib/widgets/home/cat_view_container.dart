@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
-import '../../models/species.dart';
+import '../../models/breed.dart';
 import '../../models/fur_pattern.dart';
+import '../../utils/breed_fur_translations.dart';
 import 'cat_list_item.dart';
 import 'cat_mosaic_item.dart';
 
 class CatViewContainer extends StatefulWidget {
   final Map<int, List<Cat>> preloadedPages;
-  final List<Species> species;
+  final List<Breed> breeds;
   final List<FurPattern> furPatterns;
   final bool isMosaicView;
   final Function(Cat) onCatTap;
@@ -25,7 +26,7 @@ class CatViewContainer extends StatefulWidget {
   const CatViewContainer({
     Key? key,
     required this.preloadedPages,
-    required this.species,
+    required this.breeds,
     required this.furPatterns,
     required this.isMosaicView,
     required this.onCatTap,
@@ -70,8 +71,9 @@ class _CatViewContainerState extends State<CatViewContainer>
   void _precacheCurrentPageImages() {
     final cats = widget.preloadedPages[widget.currentPage] ?? [];
     for (final cat in cats) {
-      if (cat.picturePath != null && !cat.picturePath!.startsWith('assets/')) {
-        final file = File(cat.picturePath!);
+      final photoPath = cat.primaryPhotoPath;
+      if (photoPath != null && !photoPath.startsWith('assets/')) {
+        final file = File(photoPath);
         if (file.existsSync()) {
           precacheImage(FileImage(file), context);
         }
@@ -111,17 +113,19 @@ class _CatViewContainerState extends State<CatViewContainer>
     }
   }
 
-  String _getSpeciesName(int speciesId) {
+  String _getBreedName(int breedId) {
     final l10n = AppLocalizations.of(context);
-    final foundSpecies = widget.species.where((s) => s.id == speciesId);
-    return foundSpecies.isNotEmpty ? foundSpecies.first.name : l10n.unknownSpecies;
+    final found = widget.breeds.where((b) => b.id == breedId);
+    if (found.isEmpty) return l10n.unknownBreed;
+    return getLocalizedBreedName(context, found.first);
   }
 
   String _getFurPatternName(int? furPatternId) {
     final l10n = AppLocalizations.of(context);
     if (furPatternId == null) return l10n.noPattern;
     final pattern = widget.furPatterns.where((p) => p.id == furPatternId);
-    return pattern.isNotEmpty ? pattern.first.name : l10n.unknownPattern;
+    if (pattern.isEmpty) return l10n.unknownPattern;
+    return getLocalizedFurPatternName(context, pattern.first);
   }
 
   @override
@@ -201,7 +205,7 @@ class _CatViewContainerState extends State<CatViewContainer>
         final cat = cats[index];
         return CatListItem(
           cat: cat,
-          speciesName: _getSpeciesName(cat.speciesId),
+          breedName: _getBreedName(cat.breedId),
           furPatternName: _getFurPatternName(cat.furPatternId),
           onTap: () => widget.onCatTap(cat),
           onEdit: () => widget.onEditCat(cat),
@@ -226,7 +230,7 @@ class _CatViewContainerState extends State<CatViewContainer>
         final cat = cats[index];
         return CatMosaicItem(
           cat: cat,
-          speciesName: _getSpeciesName(cat.speciesId),
+          breedName: _getBreedName(cat.breedId),
           furPatternName: _getFurPatternName(cat.furPatternId),
           onTap: () => widget.onCatTap(cat),
           onEdit: () => widget.onEditCat(cat),

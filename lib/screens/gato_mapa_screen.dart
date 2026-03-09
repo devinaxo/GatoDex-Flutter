@@ -7,7 +7,7 @@ import '../services/cat_service.dart';
 import '../services/image_service.dart';
 import '../services/cat_data_notifier.dart';
 import '../models/cat.dart';
-import '../models/species.dart';
+import '../models/breed.dart';
 import '../models/fur_pattern.dart';
 import '../widgets/home/cat_details_modal.dart';
 import '../utils/map_tile_helper.dart';
@@ -25,7 +25,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   final CatDataNotifier _dataNotifier = CatDataNotifier();
   List<Cat> _allCats = [];
   List<Cat> _catsWithLocation = [];
-  List<Species> _species = [];
+  List<Breed> _breeds = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
   final MapController _mapController = MapController();
@@ -50,7 +50,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
 
     try {
       final cats = await _catService.getAllCats();
-      final species = await _catService.getAllSpecies();
+      final breeds = await _catService.getAllBreeds();
       final furPatterns = await _catService.getAllFurPatterns();
       final catsWithLocation = cats.where((cat) => cat.hasLocation).toList();
 
@@ -63,7 +63,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
       setState(() {
         _allCats = cats;
         _catsWithLocation = catsWithLocation;
-        _species = species;
+        _breeds = breeds;
         _furPatterns = furPatterns;
         _isLoading = false;
       });
@@ -126,9 +126,9 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
           ],
         ),
         child: ClipOval(
-          child: cat.picturePath != null && File(cat.picturePath!).existsSync()
+          child: cat.primaryPhotoPath != null && File(cat.primaryPhotoPath!).existsSync()
               ? Image.file(
-                  File(cat.picturePath!),
+                  File(cat.primaryPhotoPath!),
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => _buildDefaultMarker(context),
                 )
@@ -287,7 +287,7 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
       backgroundColor: Colors.transparent,
       builder: (context) => CatDetailsModal(
         cat: cat,
-        species: _species,
+        breeds: _breeds,
         furPatterns: _furPatterns,
         onEdit: () => _navigateToEditCat(cat),
         onDelete: () => _showDeleteDialog(cat),
@@ -316,7 +316,11 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () async {
-              await _imageService.deleteImage(cat.picturePath);
+              for (final photo in cat.photos) {
+                if (!photo.photoPath.startsWith('assets/')) {
+                  await _imageService.deleteImage(photo.photoPath);
+                }
+              }
               await _catService.deleteCat(cat.id);
               Navigator.pop(context);
               _loadData();

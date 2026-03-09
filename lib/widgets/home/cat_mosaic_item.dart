@@ -6,7 +6,7 @@ import '../../utils/helpers.dart';
 
 class CatMosaicItem extends StatelessWidget {
   final Cat cat;
-  final String speciesName;
+  final String breedName;
   final String furPatternName;
   final VoidCallback onTap;
   final VoidCallback onEdit;
@@ -15,7 +15,7 @@ class CatMosaicItem extends StatelessWidget {
   const CatMosaicItem({
     Key? key,
     required this.cat,
-    required this.speciesName,
+    required this.breedName,
     required this.furPatternName,
     required this.onTap,
     required this.onEdit,
@@ -26,6 +26,7 @@ class CatMosaicItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final photoPath = cat.primaryPhotoPath;
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -40,11 +41,28 @@ class CatMosaicItem extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  cat.picturePath != null
-                      ? cat.picturePath!.startsWith('assets/')
-                          ? Image.asset(cat.picturePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
-                          : Image.file(File(cat.picturePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
+                  photoPath != null
+                      ? photoPath.startsWith('assets/')
+                          ? Image.asset(photoPath, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
+                          : Image.file(File(photoPath), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder(context))
                       : _buildPlaceholder(context),
+                  // Multi-photo indicator
+                  if (cat.photos.length > 1)
+                    Positioned(
+                      top: 4, left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.photo_library, size: 12, color: Colors.white),
+                            const SizedBox(width: 2),
+                            Text('${cat.photos.length}', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 4, right: 4,
                     child: SizedBox(
@@ -74,7 +92,7 @@ class CatMosaicItem extends StatelessWidget {
                 children: [
                   Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  Text(speciesName, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(breedName, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
                   if (cat.dateMet != null) ...[
                     const SizedBox(height: 1),
                     Text(AppHelpers.formatDate(cat.dateMet), style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)), maxLines: 1),

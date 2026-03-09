@@ -6,7 +6,7 @@ import '../../utils/helpers.dart';
 
 class CatListItem extends StatelessWidget {
   final Cat cat;
-  final String speciesName;
+  final String breedName;
   final String furPatternName;
   final VoidCallback onTap;
   final VoidCallback onEdit;
@@ -15,7 +15,7 @@ class CatListItem extends StatelessWidget {
   const CatListItem({
     Key? key,
     required this.cat,
-    required this.speciesName,
+    required this.breedName,
     required this.furPatternName,
     required this.onTap,
     required this.onEdit,
@@ -25,6 +25,7 @@ class CatListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final photoPath = cat.primaryPhotoPath;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
@@ -32,11 +33,11 @@ class CatListItem extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           radius: 25,
-          child: cat.picturePath != null
+          child: photoPath != null
               ? ClipOval(
-                  child: cat.picturePath!.startsWith('assets/')
-                      ? Image.asset(cat.picturePath!, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context))
-                      : Image.file(File(cat.picturePath!), width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context)),
+                  child: photoPath.startsWith('assets/')
+                      ? Image.asset(photoPath, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context))
+                      : Image.file(File(photoPath), width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackIcon(context)),
                 )
               : _buildFallbackIcon(context),
         ),
@@ -44,7 +45,7 @@ class CatListItem extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$speciesName • $furPatternName', maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text('$breedName • $furPatternName', maxLines: 1, overflow: TextOverflow.ellipsis),
             if (cat.dateMet != null)
               Text(
                 AppHelpers.formatDate(cat.dateMet),

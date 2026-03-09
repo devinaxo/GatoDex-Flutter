@@ -2,18 +2,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
-import '../../models/species.dart';
+import '../../models/breed.dart';
 import '../../models/fur_pattern.dart';
 import '../../services/cat_service.dart';
 import '../../services/cat_name_api_service.dart';
 import '../../services/image_service.dart';
 import '../../utils/helpers.dart';
+import '../../utils/breed_fur_translations.dart';
 import 'location_picker_map.dart';
 
 class CatFormWidget extends StatefulWidget {
   final Cat? initialCat;
   final String saveButtonLabel;
-  final Future<void> Function(Cat cat, String? imagePath) onSave;
+  final Future<void> Function(Cat cat, List<String> photoPaths, List<String> aliases) onSave;
 
   const CatFormWidget({
     Key? key,
@@ -32,17 +33,20 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   final CatService _catService = CatService();
   final ImageService _imageService = ImageService();
 
-  List<Species> _species = [];
+  List<Breed> _breeds = [];
   List<FurPattern> _furPatterns = [];
-  int? _selectedSpeciesId;
+  int? _selectedBreedId;
   int? _selectedFurPatternId;
   String? _selectedDate;
   double? _selectedLatitude;
   double? _selectedLongitude;
-  String? _imagePath;
+  List<String> _photoPaths = [];
+  List<TextEditingController> _aliasControllers = [];
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isGeneratingName = false;
+
+  static const int _maxPhotos = 5;
 
   bool get _isEditMode => widget.initialCat != null;
 
@@ -55,15 +59,18 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   @override
   void dispose() {
     _nameController.dispose();
+    for (final controller in _aliasControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _loadReferenceData() async {
-    final species = await _catService.getAllSpecies();
+    final breeds = await _catService.getAllBreeds();
     final furPatterns = await _catService.getAllFurPatterns();
 
     setState(() {
-      _species = species;
+      _breeds = breeds;
       _furPatterns = furPatterns;
       _isLoading = false;
     });
@@ -71,14 +78,15 @@ class _CatFormWidgetState extends State<CatFormWidget> {
     if (_isEditMode) {
       final cat = widget.initialCat!;
       _nameController.text = cat.name;
-      _selectedSpeciesId = cat.speciesId;
+      _selectedBreedId = cat.breedId;
       _selectedFurPatternId = cat.furPatternId;
       _selectedDate = cat.dateMet;
       _selectedLatitude = cat.latitude;
       _selectedLongitude = cat.longitude;
-      _imagePath = cat.picturePath;
-    } else if (species.isNotEmpty) {
-      _selectedSpeciesId = species.first.id;
+      _photoPaths = cat.photos.map((p) => p.photoPath).toList();
+      _aliasControllers = cat.aliases.map((a) => TextEditingController(text: a)).toList();
+    } else if (breeds.isNotEmpty) {
+      _selectedBreedId = breeds.first.id;
     }
   }
 
@@ -100,6 +108,14 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (_photoPaths.length >= _maxPhotos) {
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.maxPhotosReached), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     bool hasPermission;
     if (source == ImageSource.camera) {
       hasPermission = await _imageService.requestCameraPermission(context);
@@ -125,7 +141,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
     }
 
     if (savedFile != null && mounted) {
-      setState(() => _imagePath = savedFile!.path);
+      setState(() => _photoPaths.add(savedFile!.path));
     }
   }
 
@@ -152,15 +168,6 @@ class _CatFormWidgetState extends State<CatFormWidget> {
                 _pickImage(ImageSource.gallery);
               },
             ),
-            if (_imagePath != null)
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: Text(l10n.deletePhoto, style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _imagePath = null);
-                },
-              ),
           ],
         ),
       ),
@@ -185,12 +192,25 @@ class _CatFormWidgetState extends State<CatFormWidget> {
     }
   }
 
+  void _addAlias() {
+    setState(() {
+      _aliasControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeAlias(int index) {
+    setState(() {
+      _aliasControllers[index].dispose();
+      _aliasControllers.removeAt(index);
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedSpeciesId == null) {
+    if (_selectedBreedId == null) {
       final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.pleaseSelectSpecies), backgroundColor: Colors.red),
+        SnackBar(content: Text(l10n.pleaseSelectBreed), backgroundColor: Colors.red),
       );
       return;
     }
@@ -201,15 +221,19 @@ class _CatFormWidgetState extends State<CatFormWidget> {
       final cat = Cat(
         id: _isEditMode ? widget.initialCat!.id : 0,
         name: _nameController.text.trim(),
-        speciesId: _selectedSpeciesId!,
+        breedId: _selectedBreedId!,
         furPatternId: _selectedFurPatternId,
         latitude: _selectedLatitude,
         longitude: _selectedLongitude,
         dateMet: _selectedDate,
-        picturePath: _imagePath,
       );
 
-      await widget.onSave(cat, _imagePath);
+      final aliases = _aliasControllers
+          .map((c) => c.text.trim())
+          .where((a) => a.isNotEmpty)
+          .toList();
+
+      await widget.onSave(cat, _photoPaths, aliases);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -232,9 +256,11 @@ class _CatFormWidgetState extends State<CatFormWidget> {
             const SizedBox(height: 24),
             _buildNameField(),
             const SizedBox(height: 16),
-            _buildSpeciesDropdown(),
+            _buildBreedDropdown(),
             const SizedBox(height: 16),
             _buildFurPatternDropdown(),
+            const SizedBox(height: 16),
+            _buildAliasesSection(),
             const SizedBox(height: 16),
             _buildDateField(),
             const SizedBox(height: 16),
@@ -249,44 +275,109 @@ class _CatFormWidgetState extends State<CatFormWidget> {
 
   Widget _buildPhotoSection() {
     final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(l10n.photosLabel, style: Theme.of(context).textTheme.titleSmall),
+            Text(l10n.photosCount(_photoPaths.length),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _photoPaths.length >= _maxPhotos
+                      ? Colors.orange
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                )),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              ..._photoPaths.asMap().entries.map((entry) => _buildPhotoThumbnail(entry.key, entry.value)),
+              if (_photoPaths.length < _maxPhotos) _buildAddPhotoButton(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoThumbnail(int index, String path) {
+    return Container(
+      width: 120,
+      height: 120,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: path.startsWith('assets/')
+                ? Image.asset(path, width: 120, height: 120, fit: BoxFit.cover)
+                : Image.file(File(path), width: 120, height: 120, fit: BoxFit.cover),
+          ),
+          // Order badge
+          Positioned(
+            bottom: 4,
+            left: 4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: index == 0 ? Theme.of(context).colorScheme.primary : Colors.black54,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                index == 0 ? '★' : '${index + 1}',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          // Delete button
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => setState(() => _photoPaths.removeAt(index)),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddPhotoButton() {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: _showImagePickerOptions,
       child: Container(
-        height: 200,
+        width: 120,
+        height: 120,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
         ),
-        child: _imagePath != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _imagePath!.startsWith('assets/')
-                        ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                        : Image.file(File(_imagePath!), fit: BoxFit.cover),
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(20)),
-                        child: const Icon(Icons.edit, color: Colors.white, size: 20),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_a_photo, size: 48, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(height: 8),
-                  Text(l10n.tapToAddPhoto, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
-              ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo, size: 32, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 4),
+            Text(l10n.tapToAddPhoto,
+                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }
@@ -318,18 +409,21 @@ class _CatFormWidgetState extends State<CatFormWidget> {
     );
   }
 
-  Widget _buildSpeciesDropdown() {
+  Widget _buildBreedDropdown() {
     final l10n = AppLocalizations.of(context);
     return DropdownButtonFormField<int>(
-      value: _selectedSpeciesId,
+      value: _selectedBreedId,
       decoration: InputDecoration(
-        labelText: l10n.speciesLabel,
+        labelText: l10n.breedLabel,
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.category),
       ),
-      items: _species.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
-      onChanged: (value) => setState(() => _selectedSpeciesId = value),
-      validator: (value) => value == null ? l10n.pleaseSelectSpecies : null,
+      items: _breeds.map((b) => DropdownMenuItem(
+        value: b.id,
+        child: Text(getLocalizedBreedName(context, b)),
+      )).toList(),
+      onChanged: (value) => setState(() => _selectedBreedId = value),
+      validator: (value) => value == null ? l10n.pleaseSelectBreed : null,
     );
   }
 
@@ -344,9 +438,65 @@ class _CatFormWidgetState extends State<CatFormWidget> {
       ),
       items: [
         DropdownMenuItem<int>(value: null, child: Text(l10n.noPattern)),
-        ..._furPatterns.map((fp) => DropdownMenuItem(value: fp.id, child: Text(fp.name))),
+        ..._furPatterns.map((fp) => DropdownMenuItem(
+          value: fp.id,
+          child: Text(getLocalizedFurPatternName(context, fp)),
+        )),
       ],
       onChanged: (value) => setState(() => _selectedFurPatternId = value),
+    );
+  }
+
+  Widget _buildAliasesSection() {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(l10n.aliasesLabel, style: Theme.of(context).textTheme.titleSmall),
+            TextButton.icon(
+              onPressed: _addAlias,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l10n.addAlias),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+        ),
+        ..._aliasControllers.asMap().entries.map((entry) {
+          final index = entry.key;
+          final controller = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      hintText: l10n.aliasHint,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => _removeAlias(index),
+                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(maxWidth: 32, maxHeight: 32),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 

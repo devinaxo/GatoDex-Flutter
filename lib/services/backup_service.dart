@@ -51,29 +51,37 @@ class BackupService {
   Future<String> exportDatabase() async {
     try {
       final cats = await _catService.getAllCats();
-      final species = await _catService.getAllSpecies();
+      final breeds = await _catService.getAllBreeds();
       final furPatterns = await _catService.getAllFurPatterns();
 
       final backupData = {
-        'version': '1.0',
+        'version': '2.0',
         'timestamp': DateTime.now().toIso8601String(),
         'data': {
-          'cats': cats.map((cat) => cat.toMap(includeId: true)).toList(),
-          'species': species.map((s) => s.toMap()).toList(),
+          'cats': cats.map((cat) {
+            final catMap = cat.toMap(includeId: true);
+            catMap['aliases'] = cat.aliases;
+            catMap['photos'] = cat.photos.map((p) => p.photoPath).toList();
+            return catMap;
+          }).toList(),
+          'breeds': breeds.map((b) => b.toMap()).toList(),
           'furPatterns': furPatterns.map((fp) => fp.toMap()).toList(),
         },
         'images': <String, String>{},
       };
 
+      // Encode all photos
       final imageMap = backupData['images'] as Map<String, String>;
       for (final cat in cats) {
-        if (cat.picturePath != null && !cat.picturePath!.startsWith('assets/')) {
-          try {
-            final imageFile = File(cat.picturePath!);
-            if (await imageFile.exists()) {
-              imageMap[cat.picturePath!] = base64Encode(await imageFile.readAsBytes());
-            }
-          } catch (_) {}
+        for (final photo in cat.photos) {
+          if (!photo.photoPath.startsWith('assets/')) {
+            try {
+              final imageFile = File(photo.photoPath);
+              if (await imageFile.exists()) {
+                imageMap[photo.photoPath] = base64Encode(await imageFile.readAsBytes());
+              }
+            } catch (_) {}
+          }
         }
       }
 
@@ -108,42 +116,63 @@ class BackupService {
       final catsData = data['cats'] as List<dynamic>;
       for (int i = 0; i < catsData.length; i++) {
         try {
-          final cat = Cat.fromMap(catsData[i] as Map<String, dynamic>);
+          final catData = catsData[i] as Map<String, dynamic>;
+          final cat = Cat.fromMap(catData);
           final existingCats = await _catService.getAllCats();
           final catExists = existingCats.any((e) => e.name.toLowerCase() == cat.name.toLowerCase());
 
-          String? newImagePath;
-          if (cat.picturePath != null && images.containsKey(cat.picturePath)) {
-            try {
-              newImagePath = await _restoreImage(cat.picturePath!, images[cat.picturePath]!);
-            } catch (_) {}
+          // Restore photos
+          final List<String> photoPaths = [];
+          final backupPhotos = catData['photos'] as List<dynamic>? ?? [];
+          // Backward compat: old backups may have picture_path
+          if (backupPhotos.isEmpty && catData['picture_path'] != null) {
+            backupPhotos.add(catData['picture_path']);
           }
+          for (final photoPath in backupPhotos) {
+            if (photoPath != null && images.containsKey(photoPath)) {
+              try {
+                final restoredPath = await _restoreImage(photoPath as String, images[photoPath]!);
+                photoPaths.add(restoredPath);
+              } catch (_) {
+                photoPaths.add(photoPath as String);
+              }
+            } else if (photoPath != null) {
+              photoPaths.add(photoPath as String);
+            }
+          }
+
+          // Restore aliases
+          final aliases = (catData['aliases'] as List<dynamic>?)
+              ?.map((a) => a.toString())
+              .toList() ?? [];
 
           final newCat = Cat(
             id: 0,
             name: cat.name,
-            speciesId: cat.speciesId,
+            breedId: cat.breedId,
             furPatternId: cat.furPatternId,
             latitude: cat.latitude,
             longitude: cat.longitude,
             dateMet: cat.dateMet,
-            picturePath: newImagePath ?? cat.picturePath,
           );
 
           if (catExists && replaceExisting) {
             final existingCat = existingCats.firstWhere((e) => e.name.toLowerCase() == cat.name.toLowerCase());
-            await _catService.updateCat(Cat(
-              id: existingCat.id,
-              name: newCat.name,
-              speciesId: newCat.speciesId,
-              furPatternId: newCat.furPatternId,
-              latitude: newCat.latitude,
-              longitude: newCat.longitude,
-              dateMet: newCat.dateMet,
-              picturePath: newCat.picturePath,
-            ));
+            await _catService.updateCatWithDetails(
+              Cat(
+                id: existingCat.id,
+                name: newCat.name,
+                breedId: newCat.breedId,
+                furPatternId: newCat.furPatternId,
+                latitude: newCat.latitude,
+                longitude: newCat.longitude,
+                dateMet: newCat.dateMet,
+              ),
+              aliases,
+              photoPaths,
+            );
           } else if (!catExists) {
-            await _catService.addCat(newCat);
+            await _catService.addCatWithDetails(newCat, aliases, photoPaths);
           } else {
             skippedCats++;
             continue;
@@ -251,11 +280,11 @@ class BackupInfo {
   }
 
   String get formattedDate {
-    if (createdAt == null) return 'Fecha desconocida';
+    if (createdAt == null) return 'Unknown date';
     final difference = DateTime.now().difference(createdAt!);
-    if (difference.inDays > 0) return '${difference.inDays} día${difference.inDays == 1 ? '' : 's'} atrás';
-    if (difference.inHours > 0) return '${difference.inHours} hora${difference.inHours == 1 ? '' : 's'} atrás';
-    if (difference.inMinutes > 0) return '${difference.inMinutes} minuto${difference.inMinutes == 1 ? '' : 's'} atrás';
-    return 'Ahora';
+    if (difference.inDays > 0) return '${difference.inDays}d ago';
+    if (difference.inHours > 0) return '${difference.inHours}h ago';
+    if (difference.inMinutes > 0) return '${difference.inMinutes}m ago';
+    return 'Just now';
   }
 }

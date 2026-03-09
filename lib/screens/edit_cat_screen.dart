@@ -19,8 +19,8 @@ class EditCatScreen extends StatelessWidget {
       body: CatFormWidget(
         initialCat: cat,
         saveButtonLabel: l10n.saveChanges,
-        onSave: (updatedCat, imagePath) async {
-          await _catService.updateCat(updatedCat);
+        onSave: (updatedCat, photoPaths, aliases) async {
+          await _catService.updateCatWithDetails(updatedCat, aliases, photoPaths);
           CatDataNotifier().notifyDataChanged();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

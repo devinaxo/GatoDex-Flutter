@@ -461,12 +461,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final allSpecies = await _catService.getAllSpecies();
+      final allBreeds = await _catService.getAllBreeds();
       final allPatterns = await _catService.getAllFurPatterns();
 
-      if (allSpecies.isEmpty) {
+      if (allBreeds.isEmpty) {
         final l10n = AppLocalizations.of(context);
-        throw Exception(l10n.noSpeciesAvailable);
+        throw Exception(l10n.noBreedsAvailable);
       }
 
       final catNames = await CatNameApiService.getMultipleCatNames(limit: 3);
@@ -475,25 +475,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Cat(
           id: 0,
           name: catNames.isNotEmpty ? catNames[0] : 'Miau',
-          speciesId: allSpecies.first.id,
+          breedId: allBreeds.first.id,
           furPatternId: allPatterns.isNotEmpty ? allPatterns.first.id : null,
           dateMet: '2024-01-15',
-          picturePath: 'assets/images/default_cat.jpg',
         ),
         Cat(
           id: 0,
           name: catNames.length > 1 ? catNames[1] : 'Luna',
-          speciesId: allSpecies.length > 1 ? allSpecies[1].id : allSpecies.first.id,
+          breedId: allBreeds.length > 1 ? allBreeds[1].id : allBreeds.first.id,
           furPatternId: allPatterns.length > 1 ? allPatterns[1].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
           dateMet: '2024-02-20',
         ),
         Cat(
           id: 0,
           name: catNames.length > 2 ? catNames[2] : 'Garfield',
-          speciesId: allSpecies.length > 2 ? allSpecies[2].id : allSpecies.first.id,
+          breedId: allBreeds.length > 2 ? allBreeds[2].id : allBreeds.first.id,
           furPatternId: allPatterns.length > 2 ? allPatterns[2].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
           dateMet: '2024-03-10',
-          picturePath: 'assets/images/default_cat.jpg',
         ),
       ];
 

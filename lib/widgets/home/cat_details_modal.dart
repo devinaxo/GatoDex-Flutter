@@ -2,15 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
-import '../../models/species.dart';
+import '../../models/breed.dart';
 import '../../models/fur_pattern.dart';
 import '../../utils/helpers.dart';
+import '../../utils/breed_fur_translations.dart';
 import '../shared/cat_location_map.dart';
 import '../shared/fullscreen_image_viewer.dart';
 
 class CatDetailsModal extends StatefulWidget {
   final Cat cat;
-  final List<Species> species;
+  final List<Breed> breeds;
   final List<FurPattern> furPatterns;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -18,7 +19,7 @@ class CatDetailsModal extends StatefulWidget {
   const CatDetailsModal({
     Key? key,
     required this.cat,
-    required this.species,
+    required this.breeds,
     required this.furPatterns,
     required this.onEdit,
     required this.onDelete,
@@ -49,22 +50,26 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
     super.dispose();
   }
 
-  String _getSpeciesName(int speciesId) {
+  String _getBreedName(int breedId) {
     final l10n = AppLocalizations.of(context);
-    final foundSpecies = widget.species.where((s) => s.id == speciesId);
-    return foundSpecies.isNotEmpty ? foundSpecies.first.name : l10n.unknownSpecies;
+    final found = widget.breeds.where((b) => b.id == breedId);
+    if (found.isEmpty) return l10n.unknownBreed;
+    return getLocalizedBreedName(context, found.first);
   }
 
   String _getFurPatternName(int? furPatternId) {
     final l10n = AppLocalizations.of(context);
     if (furPatternId == null) return l10n.noPattern;
     final pattern = widget.furPatterns.where((p) => p.id == furPatternId);
-    return pattern.isNotEmpty ? pattern.first.name : l10n.unknownPattern;
+    if (pattern.isEmpty) return l10n.unknownPattern;
+    return getLocalizedFurPatternName(context, pattern.first);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final primaryPhoto = widget.cat.primaryPhotoPath;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.8,
       minChildSize: 0.5,
@@ -99,57 +104,11 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (widget.cat.picturePath != null) {
-                                Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                    opaque: false,
-                                    pageBuilder: (context, animation, secondaryAnimation) =>
-                                      FullscreenImageViewer(
-                                        imagePath: widget.cat.picturePath,
-                                        heroTag: 'cat_image_${widget.cat.id}',
-                                      ),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Stack(
-                              children: [
-                                Hero(
-                                  tag: 'cat_image_${widget.cat.id}',
-                                  child: Container(
-                                    constraints: const BoxConstraints(maxWidth: 450, maxHeight: 600),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
-                                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
-                                    ),
-                                    child: widget.cat.picturePath != null
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(20),
-                                            child: widget.cat.picturePath!.startsWith('assets/')
-                                                ? Image.asset(widget.cat.picturePath!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _buildDefaultCatImage(context))
-                                                : Image.file(File(widget.cat.picturePath!), fit: BoxFit.contain, errorBuilder: (_, __, ___) => _buildDefaultCatImage(context)),
-                                          )
-                                        : _buildDefaultCatImage(context),
-                                  ),
-                                ),
-                                if (widget.cat.picturePath != null)
-                                  Positioned(
-                                    top: 12,
-                                    right: 12,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(20)),
-                                      child: const Icon(Icons.fullscreen, color: Colors.white, size: 16),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // Photo gallery
+                        if (widget.cat.photos.isNotEmpty)
+                          _buildPhotoGallery(context)
+                        else
+                          Center(child: _buildDefaultCatImage(context)),
 
                         const SizedBox(height: 24),
 
@@ -160,9 +119,38 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
                           ),
                         ),
 
+                        // Aliases
+                        if (widget.cat.aliases.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(l10n.aliasesDetailLabel,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    alignment: WrapAlignment.center,
+                                    children: widget.cat.aliases.map((alias) => Chip(
+                                      label: Text(alias, style: const TextStyle(fontSize: 12)),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    )).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 24),
 
-                        _buildDetailRow(context, icon: Icons.pets, label: l10n.speciesDetailLabel, value: _getSpeciesName(widget.cat.speciesId)),
+                        _buildDetailRow(context, icon: Icons.pets, label: l10n.breedDetailLabel, value: _getBreedName(widget.cat.breedId)),
                         _buildDetailRow(context, icon: Icons.palette, label: l10n.furPatternDetailLabel, value: _getFurPatternName(widget.cat.furPatternId)),
 
                         if (widget.cat.hasLocation) ...[
@@ -196,9 +184,6 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
 
                         if (widget.cat.dateMet != null)
                           _buildDetailRow(context, icon: Icons.calendar_today, label: l10n.dateMetDetailLabel, value: AppHelpers.formatDate(widget.cat.dateMet)),
-
-                        if (widget.cat.picturePath != null)
-                          _buildDetailRow(context, icon: Icons.photo, label: l10n.photoLabel, value: widget.cat.picturePath!.split('/').last),
 
                         const SizedBox(height: 32),
 
@@ -243,6 +228,113 @@ class _CatDetailsModalState extends State<CatDetailsModal> with SingleTickerProv
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoGallery(BuildContext context) {
+    if (widget.cat.photos.length == 1) {
+      return Center(
+        child: GestureDetector(
+          onTap: () => _openFullscreenImage(widget.cat.photos.first.photoPath),
+          child: Stack(
+            children: [
+              Hero(
+                tag: 'cat_image_${widget.cat.id}',
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 450, maxHeight: 600),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: _buildImage(widget.cat.photos.first.photoPath),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 12, right: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(20)),
+                  child: const Icon(Icons.fullscreen, color: Colors.white, size: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Multiple photos — horizontal scroll
+    return SizedBox(
+      height: 280,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.cat.photos.length,
+        itemBuilder: (context, index) {
+          final photo = widget.cat.photos[index];
+          return GestureDetector(
+            onTap: () => _openFullscreenImage(photo.photoPath),
+            child: Container(
+              width: 220,
+              margin: EdgeInsets.only(right: index < widget.cat.photos.length - 1 ? 12 : 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: SizedBox(
+                      width: 220, height: 280,
+                      child: _buildImage(photo.photoPath, fit: BoxFit.cover),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 8, left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                      child: Text('${index + 1}/${widget.cat.photos.length}',
+                          style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8, right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(16)),
+                      child: const Icon(Icons.fullscreen, color: Colors.white, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildImage(String path, {BoxFit fit = BoxFit.contain}) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: fit, errorBuilder: (_, __, ___) => _buildDefaultCatImage(context));
+    }
+    return Image.file(File(path), fit: fit, errorBuilder: (_, __, ___) => _buildDefaultCatImage(context));
+  }
+
+  void _openFullscreenImage(String path) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (context, animation, secondaryAnimation) => FullscreenImageViewer(
+          imagePath: path,
+          heroTag: 'cat_image_${widget.cat.id}',
         ),
       ),
     );
