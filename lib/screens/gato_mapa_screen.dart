@@ -5,6 +5,7 @@ import 'package:gatodex/l10n/app_localizations.dart';
 import 'dart:io';
 import '../services/cat_service.dart';
 import '../services/image_service.dart';
+import '../services/cat_data_notifier.dart';
 import '../models/cat.dart';
 import '../models/species.dart';
 import '../models/fur_pattern.dart';
@@ -21,6 +22,7 @@ class GatoMapaScreen extends StatefulWidget {
 class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStateMixin {
   final CatService _catService = CatService();
   final ImageService _imageService = ImageService();
+  final CatDataNotifier _dataNotifier = CatDataNotifier();
   List<Cat> _allCats = [];
   List<Cat> _catsWithLocation = [];
   List<Species> _species = [];
@@ -34,6 +36,13 @@ class _GatoMapaScreenState extends State<GatoMapaScreen> with TickerProviderStat
   void initState() {
     super.initState();
     _loadData();
+    _dataNotifier.addListener(_loadData);
+  }
+
+  @override
+  void dispose() {
+    _dataNotifier.removeListener(_loadData);
+    super.dispose();
   }
 
   Future<void> _loadData() async {

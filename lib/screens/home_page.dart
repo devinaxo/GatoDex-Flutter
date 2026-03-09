@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gatodex/l10n/app_localizations.dart';
 import '../services/cat_service.dart';
 import '../services/image_service.dart';
+import '../services/cat_data_notifier.dart';
 import '../models/cat.dart';
 import '../models/species.dart';
 import '../models/fur_pattern.dart';
@@ -20,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final CatService _catService = CatService();
   final ImageService _imageService = ImageService();
+  final CatDataNotifier _dataNotifier = CatDataNotifier();
   List<Species> _species = [];
   List<FurPattern> _furPatterns = [];
   bool _isLoading = true;
@@ -57,12 +59,18 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadViewPreference();
     _loadData();
+    _dataNotifier.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
+    _dataNotifier.removeListener(_onDataChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onDataChanged() {
+    _clearPreloadedPagesAndReload();
   }
 
   Future<void> _loadViewPreference() async {
