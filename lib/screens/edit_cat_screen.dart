@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../models/cat.dart';
 import '../services/cat_service.dart';
 import '../widgets/forms/cat_form_widget.dart';
@@ -11,16 +12,17 @@ class EditCatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar Gato')),
+      appBar: AppBar(title: Text(l10n.editCat)),
       body: CatFormWidget(
         initialCat: cat,
-        saveButtonLabel: 'Guardar Cambios',
+        saveButtonLabel: l10n.saveChanges,
         onSave: (updatedCat, imagePath) async {
           await _catService.updateCat(updatedCat);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${updatedCat.name} actualizado exitosamente')),
+              SnackBar(content: Text(l10n.catUpdatedSuccess(updatedCat.name))),
             );
             Navigator.pop(context, true);
           }

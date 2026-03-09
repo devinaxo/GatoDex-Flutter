@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../database/database_helper.dart';
 
 class DatabaseManagementScreen extends StatefulWidget {
@@ -33,20 +34,21 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
       setState(() {
         _isLoading = false;
       });
-      _showErrorDialog('Error loading database info: $e');
+      _showErrorDialog('${AppLocalizations.of(context).error}: $e');
     }
   }
 
   void _showErrorDialog(String message) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Error'),
+        title: Text(l10n.error),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
@@ -64,28 +66,27 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
 
   Future<void> _copyPathToClipboard() async {
     if (_databaseInfo != null) {
+      final l10n = AppLocalizations.of(context);
       await Clipboard.setData(ClipboardData(text: _databaseInfo!['path']));
-      _showSuccessMessage('Database path copied to clipboard');
+      _showSuccessMessage(l10n.dbPathCopied);
     }
   }
 
   Future<void> _recreateDatabase() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Recrear Base de Datos'),
-        content: Text(
-          '¿Estás seguro de que quieres recrear la base de datos? '
-          'Esto eliminará todos los datos existentes y creará una nueva base de datos con los datos iniciales.',
-        ),
+        title: Text(l10n.recreateDatabase),
+        content: Text(l10n.recreateDbConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Recrear', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.recreate, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -95,9 +96,9 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
       try {
         await _dbHelper.recreateDatabase();
         await _loadDatabaseInfo();
-        _showSuccessMessage('Base de datos recreada exitosamente');
+        _showSuccessMessage(l10n.dbRecreatedSuccess);
       } catch (e) {
-        _showErrorDialog('Error recreando la base de datos: $e');
+        _showErrorDialog(l10n.errorRecreatingDb(e.toString()));
       }
     }
   }
@@ -127,9 +128,10 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestión de Base de Datos'),
+        title: Text(l10n.databaseManagement),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
           IconButton(
@@ -147,11 +149,11 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                     children: [
                       Icon(Icons.error, size: 64, color: Colors.red),
                       SizedBox(height: 16),
-                      Text('Error cargando información de la base de datos'),
+                      Text(l10n.errorLoadingDbInfo),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadDatabaseInfo,
-                        child: Text('Reintentar'),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
@@ -163,7 +165,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                     children: [
                       // Database status section
                       Text(
-                        'Estado de la Base de Datos',
+                        l10n.databaseStatus,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -172,39 +174,39 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                       SizedBox(height: 16),
                       
                       _buildInfoCard(
-                        title: 'Estado',
-                        value: _databaseInfo!['exists'] ? 'Existe y Activa' : 'No Existe',
+                        title: l10n.status,
+                        value: _databaseInfo!['exists'] ? l10n.existsAndActive : l10n.doesNotExist,
                         icon: _databaseInfo!['exists'] ? Icons.check_circle : Icons.error,
                       ),
                       
                       _buildInfoCard(
-                        title: 'Nombre del Archivo',
+                        title: l10n.fileName,
                         value: _databaseInfo!['name'],
                         icon: Icons.storage,
                       ),
                       
                       _buildInfoCard(
-                        title: 'Versión',
+                        title: l10n.versionLabel,
                         value: _databaseInfo!['version'].toString(),
                         icon: Icons.info,
                       ),
                       
                       if (_databaseInfo!['exists']) ...[
                         _buildInfoCard(
-                          title: 'Tamaño del Archivo',
+                          title: l10n.fileSize,
                           value: _formatFileSize(_databaseInfo!['size']),
                           icon: Icons.folder,
                         ),
                         
                         _buildInfoCard(
-                          title: 'Última Modificación',
+                          title: l10n.lastModified,
                           value: DateTime.parse(_databaseInfo!['modified']).toString(),
                           icon: Icons.access_time,
                         ),
                       ],
                       
                       _buildInfoCard(
-                        title: 'Ruta del Archivo',
+                        title: l10n.filePath,
                         value: _databaseInfo!['path'],
                         icon: Icons.folder_open,
                         onTap: _copyPathToClipboard,
@@ -216,7 +218,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                       
                       // Actions section
                       Text(
-                        'Acciones de Mantenimiento',
+                        l10n.maintenanceActions,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -230,7 +232,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                             child: ElevatedButton.icon(
                               onPressed: () => Navigator.pushNamed(context, '/backup'),
                               icon: Icon(Icons.backup),
-                              label: Text('Copia de Seguridad'),
+                              label: Text(l10n.backupButton),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
@@ -243,7 +245,7 @@ class _DatabaseManagementScreenState extends State<DatabaseManagementScreen> {
                             child: ElevatedButton.icon(
                               onPressed: _recreateDatabase,
                               icon: Icon(Icons.refresh),
-                              label: Text('Recrear BD'),
+                              label: Text(l10n.recreateDb),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,

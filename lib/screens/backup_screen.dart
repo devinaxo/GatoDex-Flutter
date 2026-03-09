@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../services/backup_service.dart';
 
 class BackupScreen extends StatefulWidget {
@@ -45,11 +46,12 @@ class _BackupScreenState extends State<BackupScreen> {
       setState(() {
         _isLoading = false;
       });
-      _showError('Error cargando copias de seguridad: $e');
+      _showError(AppLocalizations.of(context).errorLoadingBackups(e.toString()));
     }
   }
 
   Future<void> _exportDatabase() async {
+    final l10n = AppLocalizations.of(context);
     try {
       setState(() {
         _isExporting = true;
@@ -62,30 +64,28 @@ class _BackupScreenState extends State<BackupScreen> {
       });
 
       _showSuccessDialog(
-        'Copia de Seguridad Creada',
-        'Los datos se han exportado exitosamente.\n\nArchivo guardado en:\n$backupPath',
+        l10n.backupCreated,
+        l10n.backupCreatedMessage(backupPath),
       );
 
-      // Refresh the backup list
       _loadBackups();
-      
-      // Indicate that a refresh is needed when going back to home
       _needsRefresh = true;
     } catch (e) {
       setState(() {
         _isExporting = false;
       });
-      _showError('Error creando copia de seguridad: $e');
+      _showError(l10n.errorCreatingBackup(e.toString()));
     }
   }
 
   Future<void> _importFromFile() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json', 'JSON'],
         allowMultiple: false,
-        dialogTitle: 'Seleccionar archivo de copia de seguridad (.json)',
+        dialogTitle: l10n.selectBackupFile,
         withData: false,
         withReadStream: false,
         allowCompression: false,
@@ -94,20 +94,20 @@ class _BackupScreenState extends State<BackupScreen> {
       if (result != null && result.files.single.path != null) {
         final filePath = result.files.single.path!;
         
-        // Check if it's a JSON file
         if (!filePath.toLowerCase().endsWith('.json')) {
-          _showError('Por favor selecciona un archivo .json de copia de seguridad');
+          _showError(l10n.selectJsonFile);
           return;
         }
         
         await _showImportDialog(filePath);
       }
     } catch (e) {
-      _showError('Error seleccionando archivo: $e');
+      _showError(l10n.errorSelectingFile(e.toString()));
     }
   }
 
   Future<void> _importBackup(String backupPath, {bool replaceExisting = false}) async {
+    final l10n = AppLocalizations.of(context);
     try {
       final result = await _backupService.importDatabase(
         backupPath,
@@ -115,43 +115,42 @@ class _BackupScreenState extends State<BackupScreen> {
       );
 
       if (result.success) {
-        String message = 'Importación completada:\n';
-        message += '• ${result.importedCats} gatos importados\n';
+        String message = '${l10n.importCompleted}\n';
+        message += '${l10n.catsImported(result.importedCats)}\n';
         
         if (result.skippedCats > 0) {
-          message += '• ${result.skippedCats} gatos omitidos (ya existen)\n';
+          message += '${l10n.catsSkipped(result.skippedCats)}\n';
         }
         
         if (result.errors.isNotEmpty) {
-          message += '\nErrores:\n${result.errors.join('\n')}';
+          message += '\n${l10n.errors}\n${result.errors.join('\n')}';
         }
 
-        _showSuccessDialog('Importación Exitosa', message);
-        
-        // Indicate that a refresh is needed when going back to home
+        _showSuccessDialog(l10n.importSuccess, message);
         _needsRefresh = true;
       } else {
-        _showError('Error en la importación: ${result.errors.join(', ')}');
+        _showError(l10n.importError(result.errors.join(', ')));
       }
     } catch (e) {
-      _showError('Error importando datos: $e');
+      _showError(l10n.errorImportingData(e.toString()));
     }
   }
 
   Future<void> _showImportDialog(String filePath) async {
+    final l10n = AppLocalizations.of(context);
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Importar Copia de Seguridad'),
+          title: Text(l10n.importBackup),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('¿Cómo deseas importar los datos?'),
+              Text(l10n.howToImport),
               SizedBox(height: 16),
               Text(
-                'Archivo: ${filePath.split('/').last}',
+                l10n.file(filePath.split('/').last),
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
@@ -159,20 +158,20 @@ class _BackupScreenState extends State<BackupScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 _importBackup(filePath, replaceExisting: false);
               },
-              child: Text('Agregar Solo Nuevos'),
+              child: Text(l10n.addOnlyNew),
             ),
             TextButton(
               onPressed: () async {
                 final confirmed = await _showConfirmDialog(
-                  'Reemplazar Todos los Datos',
-                  '¿Estás seguro? Esta acción eliminará todos los gatos existentes y los reemplazará con los datos del archivo de copia de seguridad.',
+                  l10n.replaceAllData,
+                  l10n.replaceAllConfirm,
                 );
                 
                 if (confirmed) {
@@ -181,7 +180,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text('Reemplazar Todo'),
+              child: Text(l10n.replaceAll),
             ),
           ],
         );
@@ -190,6 +189,7 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<bool> _showConfirmDialog(String title, String message) async {
+    final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -199,12 +199,12 @@ class _BackupScreenState extends State<BackupScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text('Confirmar'),
+              child: Text(l10n.confirm),
             ),
           ],
         );
@@ -214,23 +214,25 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _deleteBackup(BackupInfo backup) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _showConfirmDialog(
-      'Eliminar Copia de Seguridad',
-      '¿Estás seguro de que deseas eliminar esta copia de seguridad?\n\n${backup.fileName}',
+      l10n.deleteBackup,
+      l10n.deleteBackupConfirm(backup.fileName),
     );
 
     if (confirmed) {
       try {
         await _backupService.deleteBackup(backup.filePath);
-        _showSnackBar('Copia de seguridad eliminada', Colors.green);
+        _showSnackBar(l10n.backupDeleted, Colors.green);
         _loadBackups();
       } catch (e) {
-        _showError('Error eliminando copia de seguridad: $e');
+        _showError(l10n.errorDeletingBackup(e.toString()));
       }
     }
   }
 
   Future<void> _shareBackup(BackupInfo backup) async {
+    final l10n = AppLocalizations.of(context);
     try {
       await SharePlus.instance.share(
         ShareParams(
@@ -239,7 +241,7 @@ class _BackupScreenState extends State<BackupScreen> {
         ),
       );
     } catch (e) {
-      _showError('Error compartiendo copia de seguridad: $e');
+      _showError(l10n.errorSharingBackup(e.toString()));
     }
   }
 
@@ -262,6 +264,7 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   void _showSuccessDialog(String title, String message) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -277,7 +280,7 @@ class _BackupScreenState extends State<BackupScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Entendido'),
+              child: Text(l10n.understood),
             ),
           ],
         );
@@ -287,15 +290,15 @@ class _BackupScreenState extends State<BackupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return WillPopScope(
       onWillPop: () async {
-        // Return the refresh flag when navigating back
         Navigator.of(context).pop(_needsRefresh);
-        return false; // Prevent default pop
+        return false;
       },
       child: Scaffold(
       appBar: AppBar(
-        title: Text('Copia de Seguridad'),
+        title: Text(l10n.backupTitle),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: _isLoading
@@ -319,7 +322,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Icon(Icons.backup),
-                          label: Text(_isExporting ? 'Creando...' : 'Crear Copia de Seguridad'),
+                          label: Text(_isExporting ? l10n.creating : l10n.createBackup),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                             padding: EdgeInsets.symmetric(vertical: 12),
@@ -333,7 +336,7 @@ class _BackupScreenState extends State<BackupScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _importFromFile,
                           icon: Icon(Icons.restore),
-                          label: Text('Importar desde Archivo'),
+                          label: Text(l10n.importFromFile),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
@@ -361,11 +364,11 @@ class _BackupScreenState extends State<BackupScreen> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                'No hay copias de seguridad',
+                                l10n.noBackups,
                                 style: Theme.of(context).textTheme.headlineSmall,
                               ),
                               SizedBox(height: 8),
-                              Text('Crea tu primera copia de seguridad arriba'),
+                              Text(l10n.createFirstBackup),
                             ],
                           ),
                         )
@@ -390,7 +393,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${backup.catsCount} gatos • ${backup.formattedSize}'),
+                                    Text('${l10n.catsCount(backup.catsCount)} • ${backup.formattedSize}'),
                                     Text(
                                       backup.formattedDate,
                                       style: TextStyle(fontSize: 12),
@@ -405,7 +408,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                         children: [
                                           Icon(Icons.restore),
                                           SizedBox(width: 8),
-                                          Text('Importar'),
+                                          Text(l10n.import),
                                         ],
                                       ),
                                     ),
@@ -415,7 +418,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                         children: [
                                           Icon(Icons.share),
                                           SizedBox(width: 8),
-                                          Text('Compartir'),
+                                          Text(l10n.share),
                                         ],
                                       ),
                                     ),
@@ -425,7 +428,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                         children: [
                                           Icon(Icons.delete, color: Colors.red),
                                           SizedBox(width: 8),
-                                          Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                          Text(l10n.delete, style: TextStyle(color: Colors.red)),
                                         ],
                                       ),
                                     ),
@@ -452,7 +455,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 ),
               ],
             ),
-      ), // Close WillPopScope child (Scaffold)
-    ); // Close WillPopScope
+      ),
+    );
   }
 }

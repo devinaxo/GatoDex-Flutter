@@ -8,24 +8,8 @@ class AppConstants {
   static const String speciesTable = 'species';
   static const String furPatternsTable = 'fur_patterns';
   
-  // App strings
+  // App name (non-translatable brand name)
   static const String appName = 'Gatodex';
-  static const String noCatsFound = 'No se encontraron gatos';
-  static const String addCat = 'Agregar Gato';
-  static const String editCat = 'Editar Gato';
-  static const String deleteCat = 'Eliminar Gato';
-  static const String catName = 'Nombre del Gato';
-  static const String species = 'Especie';
-  static const String furPattern = 'Patrón de Pelaje';
-  static const String location = 'Ubicación';
-  static const String dateMet = 'Fecha de Encuentro';
-  static const String picture = 'Foto';
-  
-  // Default values
-  static const String unknownSpecies = 'Especie Desconocida';
-  static const String unknownFurPattern = 'Patrón Desconocido';
-  static const String noLocation = 'Sin Ubicación';
-  static const String noDate = 'Fecha Desconocida';
   
   // Image paths
   static const String defaultCatImage = 'assets/images/default_cat.png';

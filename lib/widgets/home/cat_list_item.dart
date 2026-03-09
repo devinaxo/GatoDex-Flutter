@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
 import '../../utils/helpers.dart';
 
@@ -23,6 +24,7 @@ class CatListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
@@ -56,8 +58,8 @@ class CatListItem extends StatelessWidget {
           child: PopupMenuButton(
             padding: EdgeInsets.zero,
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Editar')])),
-              const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: Colors.red))])),
+              PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text(l10n.edit)])),
+              PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text(l10n.delete, style: TextStyle(color: Colors.red))])),
             ],
             onSelected: (value) {
               if (value == 'edit') onEdit();

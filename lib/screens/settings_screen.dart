@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import 'backup_screen.dart';
 import 'database_management_screen.dart';
 import '../services/cat_service.dart';
@@ -21,17 +22,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
           // General Section
           _buildSectionCard(
-            title: 'General',
+            title: l10n.general,
             children: [
               _buildListTile(
                 icon: Icons.backup,
-                title: 'Copia de Seguridad',
-                subtitle: 'Gestionar copias de seguridad',
+                title: l10n.backup,
+                subtitle: l10n.manageBackups,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -43,8 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _buildListTile(
                 icon: Icons.info_outline,
-                title: 'Acerca de',
-                subtitle: 'Información de la aplicación',
+                title: l10n.about,
+                subtitle: l10n.appInfo,
                 onTap: () => _showAboutDialog(),
               ),
             ],
@@ -54,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           
           // Advanced Testing Section
           _buildSectionCard(
-            title: 'Testing (Avanzado!)',
+            title: l10n.testingAdvanced,
             isExpandable: true,
             isExpanded: _isAdvancedExpanded,
             onExpansionChanged: (expanded) {
@@ -82,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Estas opciones son principalmente para desarrolladores. Si no sabes lo que estás haciendo, probablemente no deberías tocar esto.',
+                        l10n.advancedWarning,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.amber.shade800,
@@ -95,8 +97,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _buildListTile(
                 icon: Icons.storage,
-                title: 'Gestión de BD',
-                subtitle: 'Administrar base de datos',
+                title: l10n.dbManagement,
+                subtitle: l10n.manageDatabase,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -108,10 +110,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _buildListTile(
                 icon: Icons.add_circle_outline,
-                title: 'Agregar Datos de Prueba',
+                title: l10n.addTestData,
                 subtitle: _isAddingTestData 
-                    ? 'Agregando datos...' 
-                    : 'Añadir gatos de ejemplo',
+                    ? l10n.addingData 
+                    : l10n.addExampleCats,
                 onTap: _isAddingTestData ? null : () => _showAddTestDataDialog(),
                 trailing: _isAddingTestData 
                     ? const SizedBox(
@@ -123,8 +125,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _buildListTile(
                 icon: Icons.delete_forever,
-                title: 'Eliminar Todos los Gatos',
-                subtitle: 'Borra TODOS los gatos de la base de datos',
+                title: l10n.deleteAllCats,
+                subtitle: l10n.deleteAllCatsSubtitle,
                 onTap: () => _showClearAllCatsDialog(),
                 iconColor: Colors.red,
                 titleColor: Colors.red,
@@ -219,6 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     
     showAboutDialog(
       context: context,
@@ -229,9 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Image.asset('assets/icon/icon.png', width: 64, height: 64),
       ),
       children: [
-        const Text(
-          'Una aplicación para catalogar y gestionar información sobre gatos que te encuentres.',
-        ),
+        Text(l10n.appDescription),
         const SizedBox(height: 24),
         // Social media icons section
         Row(
@@ -296,8 +297,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Desarrollado con Flutter',
+        Text(
+          l10n.developedWithFlutter,
           style: TextStyle(fontStyle: FontStyle.italic),
         ),
       ],
@@ -306,8 +307,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
+    final l10n = AppLocalizations.of(context);
     try {
-      // First try to check if the URL can be launched
       bool canLaunch = await canLaunchUrl(uri);
       
       if (canLaunch) {
@@ -317,14 +318,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
         
         if (!launched) {
-          // Try with platform default mode if external application fails
           launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
         }
         
         if (!launched && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('No se pudo abrir el enlace: $url'),
+              content: Text(l10n.couldNotOpenLink(url)),
               backgroundColor: Colors.red,
             ),
           );
@@ -333,7 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('No se puede abrir este tipo de enlace: $url'),
+              content: Text(l10n.cannotOpenLinkType(url)),
               backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           );
@@ -343,7 +343,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al abrir el enlace: $e'),
+            content: Text(l10n.errorOpeningLink(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -352,19 +352,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _showAddTestDataDialog() async {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Agregar Datos de Prueba'),
-        content: const Text(
-          '¿Estás seguro de que quieres agregar gatos de prueba?\n\n'
-          'Esto agregará 3 gatos de ejemplo con nombres generados aleatoriamente.\n'
-          'Los gatos existentes no se eliminarán.',
-        ),
+        title: Text(l10n.addTestDataTitle),
+        content: Text(l10n.addTestDataConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -375,7 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
-            child: const Text('Agregar Datos'),
+            child: Text(l10n.addData),
           ),
         ],
       ),
@@ -383,6 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _showClearAllCatsDialog() async {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -390,20 +388,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Icon(Icons.warning, color: Colors.red),
             const SizedBox(width: 8),
-            const Text('¡Peligro!'),
+            Text(l10n.dangerTitle),
           ],
         ),
-        content: const Text(
-          '¿Estás COMPLETAMENTE SEGURO de que quieres eliminar TODOS los gatos?\n\n'
-          '⚠️ Esta acción NO se puede deshacer.\n'
-          '⚠️ Se perderán TODOS los datos de gatos.\n'
-          '⚠️ Las fotos también se eliminarán.\n\n'
-          'Solo procede si sabes exactamente lo que estás haciendo.',
-        ),
+        content: Text(l10n.deleteAllCatsConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -414,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
-            child: const Text('ELIMINAR TODO'),
+            child: Text(l10n.deleteAll),
           ),
         ],
       ),
@@ -423,32 +415,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _clearAllCats() async {
     setState(() {
-      _isAddingTestData = true; // Reuse the loading state
+      _isAddingTestData = true;
     });
 
     try {
-      // Get all cats and delete them one by one
       final allCats = await _catService.getAllCats();
       for (var cat in allCats) {
         await _catService.deleteCat(cat.id);
       }
 
       if (mounted) {
-        setState(() {
-          // Cats deleted
-        });
+        final l10n = AppLocalizations.of(context);
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Todos los gatos han sido eliminados!'),
+          SnackBar(
+            content: Text(l10n.allCatsDeleted),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al eliminar gatos: $e'),
+            content: Text(l10n.errorDeletingCats(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -468,21 +459,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      // Get existing species and patterns to use their IDs
       final allSpecies = await _catService.getAllSpecies();
       final allPatterns = await _catService.getAllFurPatterns();
 
       if (allSpecies.isEmpty) {
-        throw Exception('No hay especies disponibles. Necesitas al menos una especie para crear gatos de prueba.');
+        final l10n = AppLocalizations.of(context);
+        throw Exception(l10n.noSpeciesAvailable);
       }
 
-      // Fetch 3 random cat names from the API
       final catNames = await CatNameApiService.getMultipleCatNames(limit: 3);
 
-      // Add test cats with API-generated names
       final testCats = [
         Cat(
-          id: 0, // Will be auto-generated
+          id: 0,
           name: catNames.isNotEmpty ? catNames[0] : 'Miau',
           speciesId: allSpecies.first.id,
           furPatternId: allPatterns.isNotEmpty ? allPatterns.first.id : null,
@@ -490,14 +479,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           picturePath: 'assets/images/default_cat.jpg',
         ),
         Cat(
-          id: 0, // Will be auto-generated
+          id: 0,
           name: catNames.length > 1 ? catNames[1] : 'Luna',
           speciesId: allSpecies.length > 1 ? allSpecies[1].id : allSpecies.first.id,
           furPatternId: allPatterns.length > 1 ? allPatterns[1].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
           dateMet: '2024-02-20',
         ),
         Cat(
-          id: 0, // Will be auto-generated
+          id: 0,
           name: catNames.length > 2 ? catNames[2] : 'Garfield',
           speciesId: allSpecies.length > 2 ? allSpecies[2].id : allSpecies.first.id,
           furPatternId: allPatterns.length > 2 ? allPatterns[2].id : (allPatterns.isNotEmpty ? allPatterns.first.id : null),
@@ -511,21 +500,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
 
       if (mounted) {
-        setState(() {
-          // Test cats added
-        });
+        final l10n = AppLocalizations.of(context);
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('¡3 gatos de prueba agregados exitosamente con nombres: ${catNames.join(", ")}!'),
+            content: Text(l10n.testCatsAddedSuccess(catNames.join(", "))),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al agregar gatos de prueba: $e'),
+            content: Text(l10n.errorAddingTestCats(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

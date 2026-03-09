@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gatodex/l10n/app_localizations.dart';
 import '../../models/cat.dart';
 import '../../models/species.dart';
 import '../../models/fur_pattern.dart';
@@ -88,8 +89,9 @@ class _CatFormWidgetState extends State<CatFormWidget> {
       _nameController.text = name;
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generando nombre: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(l10n.errorGeneratingName(e.toString())), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -107,8 +109,9 @@ class _CatFormWidgetState extends State<CatFormWidget> {
 
     if (!hasPermission) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso denegado'), backgroundColor: Colors.red),
+          SnackBar(content: Text(l10n.permissionDenied), backgroundColor: Colors.red),
         );
       }
       return;
@@ -127,6 +130,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   void _showImagePickerOptions() {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -134,7 +138,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Tomar foto'),
+              title: Text(l10n.takePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
@@ -142,7 +146,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Elegir de galería'),
+              title: Text(l10n.chooseFromGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
@@ -151,7 +155,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
             if (_imagePath != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Eliminar foto', style: TextStyle(color: Colors.red)),
+                title: Text(l10n.deletePhoto, style: TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(context);
                   setState(() => _imagePath = null);
@@ -184,8 +188,9 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedSpeciesId == null) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una especie'), backgroundColor: Colors.red),
+        SnackBar(content: Text(l10n.pleaseSelectSpecies), backgroundColor: Colors.red),
       );
       return;
     }
@@ -243,6 +248,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Widget _buildPhotoSection() {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: _showImagePickerOptions,
       child: Container(
@@ -278,7 +284,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
                 children: [
                   Icon(Icons.add_a_photo, size: 48, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 8),
-                  Text('Toca para agregar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(l10n.tapToAddPhoto, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
       ),
@@ -286,17 +292,18 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Widget _buildNameField() {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           child: TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nombre del Gato',
+            decoration: InputDecoration(
+              labelText: l10n.catName,
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.pets),
             ),
-            validator: (value) => (value == null || value.trim().isEmpty) ? 'Por favor ingresa un nombre' : null,
+            validator: (value) => (value == null || value.trim().isEmpty) ? l10n.pleaseEnterName : null,
           ),
         ),
         const SizedBox(width: 8),
@@ -305,36 +312,38 @@ class _CatFormWidgetState extends State<CatFormWidget> {
           icon: _isGeneratingName
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.casino),
-          tooltip: 'Generar nombre aleatorio',
+          tooltip: l10n.generateRandomName,
         ),
       ],
     );
   }
 
   Widget _buildSpeciesDropdown() {
+    final l10n = AppLocalizations.of(context);
     return DropdownButtonFormField<int>(
       value: _selectedSpeciesId,
-      decoration: const InputDecoration(
-        labelText: 'Especie',
+      decoration: InputDecoration(
+        labelText: l10n.speciesLabel,
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.category),
       ),
       items: _species.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
       onChanged: (value) => setState(() => _selectedSpeciesId = value),
-      validator: (value) => value == null ? 'Por favor selecciona una especie' : null,
+      validator: (value) => value == null ? l10n.pleaseSelectSpecies : null,
     );
   }
 
   Widget _buildFurPatternDropdown() {
+    final l10n = AppLocalizations.of(context);
     return DropdownButtonFormField<int>(
       value: _selectedFurPatternId,
-      decoration: const InputDecoration(
-        labelText: 'Patrón de Pelaje (Opcional)',
+      decoration: InputDecoration(
+        labelText: l10n.furPatternLabel,
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.palette),
       ),
       items: [
-        const DropdownMenuItem<int>(value: null, child: Text('Sin Patrón')),
+        DropdownMenuItem<int>(value: null, child: Text(l10n.noPattern)),
         ..._furPatterns.map((fp) => DropdownMenuItem(value: fp.id, child: Text(fp.name))),
       ],
       onChanged: (value) => setState(() => _selectedFurPatternId = value),
@@ -342,11 +351,12 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Widget _buildDateField() {
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: _selectDate,
       child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Fecha de Encuentro (Opcional)',
+        decoration: InputDecoration(
+          labelText: l10n.dateMetLabel,
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.calendar_today),
         ),
@@ -354,7 +364,7 @@ class _CatFormWidgetState extends State<CatFormWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              _selectedDate != null ? AppHelpers.formatDate(_selectedDate) : 'Seleccionar fecha',
+              _selectedDate != null ? AppHelpers.formatDate(_selectedDate) : l10n.selectDate,
               style: TextStyle(
                 color: _selectedDate != null ? null : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -371,13 +381,14 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Widget _buildLocationSection() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            'Ubicación (Opcional)',
+            l10n.locationOptional,
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
@@ -394,7 +405,10 @@ class _CatFormWidgetState extends State<CatFormWidget> {
         if (_selectedLatitude != null && _selectedLongitude != null) ...[
           const SizedBox(height: 8),
           Text(
-            'Ubicación: ${_selectedLatitude!.toStringAsFixed(6)}, ${_selectedLongitude!.toStringAsFixed(6)}',
+            l10n.locationCoords(
+              _selectedLatitude!.toStringAsFixed(6),
+              _selectedLongitude!.toStringAsFixed(6),
+            ),
             style: Theme.of(context).textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),
@@ -404,12 +418,13 @@ class _CatFormWidgetState extends State<CatFormWidget> {
   }
 
   Widget _buildSaveButton() {
+    final l10n = AppLocalizations.of(context);
     return FilledButton.icon(
       onPressed: _isSaving ? null : _save,
       icon: _isSaving
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
           : const Icon(Icons.save),
-      label: Text(_isSaving ? 'Guardando...' : widget.saveButtonLabel),
+      label: Text(_isSaving ? l10n.saving : widget.saveButtonLabel),
       style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
     );
   }
