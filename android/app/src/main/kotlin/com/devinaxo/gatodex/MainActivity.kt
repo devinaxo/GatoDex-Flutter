@@ -10,6 +10,7 @@ import java.io.FileOutputStream
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.devinaxo.gatodex/file_intent"
+    private val ACTION_ADD_CAT = "com.devinaxo.gatodex.ACTION_ADD_CAT"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -19,6 +20,10 @@ class MainActivity : FlutterActivity() {
                 "getInitialFileIntent" -> {
                     val path = handleIntent(intent)
                     result.success(path)
+                }
+                "getWidgetAction" -> {
+                    val action = if (intent?.action == ACTION_ADD_CAT) "add_cat" else null
+                    result.success(action)
                 }
                 else -> result.notImplemented()
             }
@@ -32,6 +37,11 @@ class MainActivity : FlutterActivity() {
         if (path != null) {
             flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
                 MethodChannel(messenger, CHANNEL).invokeMethod("onFileReceived", path)
+            }
+        }
+        if (intent.action == ACTION_ADD_CAT) {
+            flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                MethodChannel(messenger, CHANNEL).invokeMethod("onWidgetAction", "add_cat")
             }
         }
     }

@@ -3,9 +3,11 @@ import '../models/cat.dart';
 import '../models/breed.dart';
 import '../models/fur_pattern.dart';
 import '../models/cat_photo.dart';
+import 'widget_service.dart';
 
 class CatService {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
+  final WidgetService _widgetService = WidgetService();
 
   // Cat operations
   Future<int> addCat(Cat cat) async {
@@ -20,12 +22,14 @@ class CatService {
     if (photoPaths.isNotEmpty) {
       await _databaseHelper.updatePhotos(catId, photoPaths);
     }
+    await _widgetService.syncPhotos();
   }
 
   Future<void> updateCatWithDetails(Cat cat, List<String> aliases, List<String> photoPaths) async {
     await _databaseHelper.updateCat(cat);
     await _databaseHelper.updateAliases(cat.id, aliases);
     await _databaseHelper.updatePhotos(cat.id, photoPaths);
+    await _widgetService.syncPhotos();
   }
 
   Future<List<Cat>> getAllCats() async {
@@ -82,10 +86,12 @@ class CatService {
 
   Future<void> updateCat(Cat cat) async {
     await _databaseHelper.updateCat(cat);
+    await _widgetService.syncPhotos();
   }
 
   Future<void> deleteCat(int id) async {
     await _databaseHelper.deleteCat(id);
+    await _widgetService.syncPhotos();
   }
 
   Future<List<Cat>> searchCats(String name) async {
@@ -139,14 +145,17 @@ class CatService {
 
   Future<void> addPhoto(int catId, String photoPath, int displayOrder) async {
     await _databaseHelper.insertPhoto(catId, photoPath, displayOrder);
+    await _widgetService.syncPhotos();
   }
 
   Future<void> deletePhoto(int photoId) async {
     await _databaseHelper.deletePhoto(photoId);
+    await _widgetService.syncPhotos();
   }
 
   Future<void> updatePhotos(int catId, List<String> photoPaths) async {
     await _databaseHelper.updatePhotos(catId, photoPaths);
+    await _widgetService.syncPhotos();
   }
 
   Future<int> getPhotoCount(int catId) async {

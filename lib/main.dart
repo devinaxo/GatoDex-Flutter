@@ -6,6 +6,7 @@ import 'screens/main_wrapper.dart';
 import 'screens/backup_screen.dart';
 import 'services/theme_service.dart';
 import 'services/locale_service.dart';
+import 'services/widget_service.dart';
 import 'database/database_helper.dart';
 import 'utils/constants.dart';
 
@@ -14,6 +15,7 @@ void main() {
   ThemeService().init();
   LocaleService().init();
   DatabaseHelper().database; // Pre-warm database
+  WidgetService().syncPhotos(); // Sync photos for home screen widget
   runApp(const MyApp());
 }
 

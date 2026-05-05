@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_image_description">Cat photo</string>
+    <string name="widget_name">Cat Photo Slideshow</string>
+    <string name="widget_description">Cycles through your stored cat photos</string>
+    <string name="widget_description_small">Small cat photo slideshow</string>
+    <string name="widget_add_cat_name">Add Cat 1x1</string>
+    <string name="widget_add_cat_description">Quickly open the form to add a new cat</string>
+    <string name="widget_photo_frame_3x3">Photo Frame 3x3</string>
+    <string name="widget_photo_frame_2x2">Photo Frame 2x2</string>
+</resources>
