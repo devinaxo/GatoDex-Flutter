@@ -85,8 +85,12 @@ class _CatFormWidgetState extends State<CatFormWidget> {
       _selectedLongitude = cat.longitude;
       _photoPaths = cat.photos.map((p) => p.photoPath).toList();
       _aliasControllers = cat.aliases.map((a) => TextEditingController(text: a)).toList();
-    } else if (breeds.isNotEmpty) {
-      _selectedBreedId = breeds.first.id;
+    } else {
+      if (breeds.isNotEmpty) {
+        _selectedBreedId = breeds.first.id;
+      }
+      final now = DateTime.now();
+      _selectedDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     }
   }
 

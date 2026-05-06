@@ -54,6 +54,45 @@
                 <data android:mimeType="application/json"/>
             </intent-filter>
         </activity>
+        <!-- Cat Photo Home Screen Widget (3x3) -->
+        <receiver
+            android:name=".CatPhotoWidgetProvider"
+            android:label="@string/widget_photo_frame_3x3"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/cat_photo_widget_info" />
+        </receiver>
+
+        <!-- Cat Photo Home Screen Widget (2x2) -->
+        <receiver
+            android:name=".CatPhotoSmallWidgetProvider"
+            android:label="@string/widget_photo_frame_2x2"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/cat_photo_small_widget_info" />
+        </receiver>
+
+        <!-- Add Cat Quick Action Widget (1x1) -->
+        <receiver
+            android:name=".AddCatWidgetProvider"
+            android:label="@string/widget_add_cat_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/add_cat_widget_info" />
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

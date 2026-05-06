@@ -6,6 +6,7 @@ import 'home_page.dart';
 import 'gato_mapa_screen.dart';
 import 'settings_screen.dart';
 import 'backup_screen.dart';
+import 'add_cat_screen.dart';
 import '../services/theme_service.dart';
 import '../services/locale_service.dart';
 
@@ -33,20 +34,29 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   void _setupFileIntentHandler() {
-    // Listen for files received while app is running
+    // Listen for files / widget actions received while app is running
     _fileChannel.setMethodCallHandler((call) async {
       if (call.method == 'onFileReceived') {
         final filePath = call.arguments as String;
         _handleIncomingFile(filePath);
+      } else if (call.method == 'onWidgetAction') {
+        final action = call.arguments as String;
+        _handleWidgetAction(action);
       }
     });
 
-    // Check for initial file intent (cold start)
+    // Check for initial file intent or widget action (cold start)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final filePath = await _fileChannel.invokeMethod<String>('getInitialFileIntent');
         if (filePath != null) {
           _handleIncomingFile(filePath);
+        }
+      } catch (_) {}
+      try {
+        final action = await _fileChannel.invokeMethod<String>('getWidgetAction');
+        if (action != null) {
+          _handleWidgetAction(action);
         }
       } catch (_) {}
     });
@@ -60,6 +70,16 @@ class _MainWrapperState extends State<MainWrapper> {
         builder: (_) => BackupScreen(initialImportPath: filePath),
       ),
     );
+  }
+
+  void _handleWidgetAction(String action) {
+    if (!mounted) return;
+    if (action == 'add_cat') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AddCatScreen()),
+      );
+    }
   }
 
   Future<void> _loadVersionIfNeeded() async {
