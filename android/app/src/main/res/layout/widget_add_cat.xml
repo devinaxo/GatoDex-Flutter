@@ -3,16 +3,18 @@
     android:id="@+id/widget_add_cat_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:background="@drawable/widget_add_cat_background"
+    android:padding="4dp">
 
     <ImageView
         android:id="@+id/widget_add_cat_icon"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:padding="12dp"
+        android:padding="6dp"
         android:scaleType="fitCenter"
         android:src="@drawable/plus_cat"
         android:tint="?android:attr/colorPrimary"
+        android:tintMode="src_in"
         android:contentDescription="@string/widget_add_cat_description" />
 </FrameLayout>
